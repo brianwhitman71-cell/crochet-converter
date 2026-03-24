@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crochet Chart Converter</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #fdf6f0;
+      color: #2d1f14;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container { max-width: 820px; margin: 0 auto; }
+
+    header { text-align: center; margin-bottom: 2.5rem; }
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #7c3f1e;
+      letter-spacing: -0.02em;
+    }
+    header h1 span { color: #c1693a; }
+    header p { color: #9a7060; margin-top: 0.4rem; font-size: 1rem; }
+
+    /* Upload area */
+    .upload-zone {
+      border: 2.5px dashed #d4a58a;
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #fff9f5;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: #c1693a;
+      background: #fff3ec;
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+    .upload-zone h2 { font-size: 1.1rem; font-weight: 700; color: #7c3f1e; }
+    .upload-zone p { color: #9a7060; font-size: 0.875rem; margin-top: 0.3rem; }
+
+    /* Preview */
+    #preview-section { display: none; margin-top: 1.5rem; }
+    #preview-wrap {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid #e8d5c8;
+      display: inline-block;
+      max-width: 100%;
+    }
+    #preview-img {
+      display: block;
+      max-height: 380px;
+      max-width: 100%;
+      object-fit: contain;
+    }
+    #change-btn {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,0.55); color: #fff;
+      border: none; border-radius: 8px;
+      padding: 5px 12px; font-size: 0.78rem; cursor: pointer;
+      font-weight: 600;
+    }
+    #change-btn:hover { background: rgba(0,0,0,0.75); }
+
+    /* Convert button */
+    #convert-btn {
+      display: block; width: 100%; margin-top: 1.25rem;
+      padding: 0.9rem;
+      background: #c1693a;
+      color: #fff;
+      border: none; border-radius: 12px;
+      font-size: 1.05rem; font-weight: 700;
+      cursor: pointer; transition: background 0.15s;
+      letter-spacing: 0.01em;
+    }
+    #convert-btn:hover:not(:disabled) { background: #a85530; }
+    #convert-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* Result area */
+    #result-section { display: none; margin-top: 2rem; }
+    .result-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .result-header h3 { font-size: 1rem; font-weight: 700; color: #7c3f1e; }
+    #copy-btn {
+      padding: 6px 14px;
+      background: #fff; border: 1.5px solid #d4a58a;
+      color: #7c3f1e; border-radius: 8px;
+      font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      transition: all 0.15s;
+    }
+    #copy-btn:hover { border-color: #c1693a; background: #fff3ec; }
+    #copy-btn.copied { border-color: #5a9e6f; color: #5a9e6f; background: #f0faf4; }
+
+    #result-box {
+      background: #fff;
+      border: 1px solid #e8d5c8;
+      border-radius: 12px;
+      padding: 1.5rem;
+      white-space: pre-wrap;
+      font-family: "Georgia", serif;
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: #2d1f14;
+      min-height: 120px;
+    }
+    #result-box.loading { color: #b08070; font-style: italic; }
+
+    /* Cursor blink when streaming */
+    .cursor {
+      display: inline-block;
+      width: 2px; height: 1em;
+      background: #c1693a;
+      vertical-align: text-bottom;
+      animation: blink 0.8s step-end infinite;
+      margin-left: 1px;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .error-msg {
+      background: #fef2f2; border: 1px solid #fca5a5;
+      border-radius: 10px; padding: 1rem;
+      color: #b91c1c; font-size: 0.9rem; margin-top: 1rem;
+    }
+
+    footer {
+      text-align: center; margin-top: 3rem;
+      color: #c4a090; font-size: 0.8rem;
+    }
+    footer a { color: #c1693a; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧶 Crochet Chart <span>Converter</span></h1>
+    <p>Upload a crochet chart image — get a full written pattern in US terminology</p>
+  </header>
+
+  <!-- Upload -->
+  <div class="upload-zone" id="upload-zone">
+    <input type="file" id="file-input" accept="image/*" />
+    <div class="upload-icon">📷</div>
+    <h2>Drop your chart image here</h2>
+    <p>or click to browse · JPG, PNG, WEBP up to 20 MB</p>
+  </div>
+
+  <!-- Preview -->
+  <div id="preview-section">
+    <div id="preview-wrap">
+      <img id="preview-img" src="" alt="Chart preview" />
+      <button id="change-btn">Change image</button>
+    </div>
+    <button id="convert-btn">Convert to Written Pattern</button>
+  </div>
+
+  <!-- Result -->
+  <div id="result-section">
+    <div class="result-header">
+      <h3>Written Pattern</h3>
+      <button id="copy-btn">Copy</button>
+    </div>
+    <div id="result-box"></div>
+  </div>
+
+  <footer>Powered by <a href="https://anthropic.com" target="_blank">Claude AI</a> · US crochet terminology</footer>
+</div>
+
+<script>
+  const fileInput = document.getElementById("file-input");
+  const uploadZone = document.getElementById("upload-zone");
+  const previewSection = document.getElementById("preview-section");
+  const previewImg = document.getElementById("preview-img");
+  const changeBtn = document.getElementById("change-btn");
+  const convertBtn = document.getElementById("convert-btn");
+  const resultSection = document.getElementById("result-section");
+  const resultBox = document.getElementById("result-box");
+  const copyBtn = document.getElementById("copy-btn");
+
+  let currentFile = null;
+
+  // Drag & drop
+  uploadZone.addEventListener("dragover", (e) => { e.preventDefault(); uploadZone.classList.add("drag-over"); });
+  uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("drag-over"));
+  uploadZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) setFile(file);
+  });
+
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files[0]) setFile(fileInput.files[0]);
+  });
+
+  changeBtn.addEventListener("click", () => {
+    fileInput.value = "";
+    fileInput.click();
+  });
+
+  function setFile(file) {
+    currentFile = file;
+    const url = URL.createObjectURL(file);
+    previewImg.src = url;
+    previewSection.style.display = "block";
+    uploadZone.style.display = "none";
+    resultSection.style.display = "none";
+    resultBox.textContent = "";
+  }
+
+  convertBtn.addEventListener("click", async () => {
+    if (!currentFile) return;
+
+    convertBtn.disabled = true;
+    convertBtn.textContent = "Converting…";
+    resultSection.style.display = "block";
+    resultBox.className = "loading";
+    resultBox.innerHTML = "Reading your chart… <span class='cursor'></span>";
+
+    const formData = new FormData();
+    formData.append("image", currentFile);
+
+    try {
+      const resp = await fetch("/api/convert", { method: "POST", body: formData });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: "Server error" }));
+        showError(err.error);
+        return;
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let text = "";
+      let started = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const msg = JSON.parse(line.slice(6));
+            if (msg.type === "delta") {
+              if (!started) {
+                resultBox.className = "";
+                resultBox.innerHTML = "";
+                started = true;
+              }
+              text += msg.text;
+              resultBox.innerHTML = escapeHtml(text) + "<span class='cursor'></span>";
+            } else if (msg.type === "done") {
+              resultBox.innerHTML = escapeHtml(text);
+            } else if (msg.type === "error") {
+              showError(msg.message);
+            }
+          } catch {}
+        }
+      }
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      convertBtn.disabled = false;
+      convertBtn.textContent = "Convert to Written Pattern";
+    }
+  });
+
+  copyBtn.addEventListener("click", () => {
+    const text = resultBox.textContent;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      copyBtn.textContent = "Copied!";
+      copyBtn.classList.add("copied");
+      setTimeout(() => { copyBtn.textContent = "Copy"; copyBtn.classList.remove("copied"); }, 2000);
+    });
+  });
+
+  function showError(msg) {
+    resultBox.innerHTML = `<div class='error-msg'>⚠️ ${escapeHtml(msg)}</div>`;
+    resultBox.className = "";
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+</script>
+</body>
+</html>
