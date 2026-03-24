@@ -4,7 +4,6 @@ const multer = require("multer");
 const Anthropic = require("@anthropic-ai/sdk");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const serverless = require("serverless-http");
 const { getStore } = require("@netlify/blobs");
@@ -111,7 +110,7 @@ app.post("/api/auth/register", async (req, res) => {
   }
 
   const hashed = await bcrypt.hash(password, 10);
-  const user = { id: uuidv4(), email: email.toLowerCase(), password: hashed, createdAt: Date.now() };
+  const user = { id: crypto.randomUUID(), email: email.toLowerCase(), password: hashed, createdAt: Date.now() };
   db.users.push(user);
   await writeDB(db);
 
@@ -185,7 +184,7 @@ app.post("/api/patterns", requireAuth, async (req, res) => {
   const { thumbnail, imageDataUrl, pattern } = req.body;
   if (!pattern) return res.status(400).json({ error: "Pattern text required" });
 
-  const id = uuidv4();
+  const id = crypto.randomUUID();
 
   if (imageDataUrl) {
     const base64 = imageDataUrl.replace(/^data:image\/\w+;base64,/, "");
