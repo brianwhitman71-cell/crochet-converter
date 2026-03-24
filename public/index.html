@@ -58,20 +58,21 @@
     .user-info { display: flex; align-items: center; gap: 0.6rem; font-size: 0.82rem; }
     .user-email { color: #b5427a; font-weight: 600; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .logout-btn {
-      padding: 5px 12px; background: #fff; border: 1.5px solid #f0a8cc;
+      padding: 10px 12px; background: #fff; border: 1.5px solid #f0a8cc;
       color: #b5427a; border-radius: 8px; font-size: 0.78rem; font-weight: 700;
-      cursor: pointer; transition: all 0.15s;
+      cursor: pointer; transition: all 0.15s; min-height: 44px;
     }
-    .logout-btn:hover { border-color: #e86fad; background: #ffe8f3; }
+    .logout-btn:hover, .logout-btn:active { border-color: #e86fad; background: #ffe8f3; }
 
     /* Tabs */
     .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 2px solid #f5c6e0; }
     .tab-btn {
-      padding: 0.6rem 1.25rem; border: none; background: none;
+      padding: 0.75rem 1.25rem; border: none; background: none;
       font-size: 0.95rem; font-weight: 700; color: #c485a8;
       cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+      min-height: 44px;
     }
-    .tab-btn:hover { color: #b5427a; }
+    .tab-btn:hover, .tab-btn:active { color: #b5427a; }
     .tab-btn.active { color: #b5427a; border-bottom-color: #e86fad; }
     .badge {
       display: inline-block; background: #f5c6e0; color: #b5427a;
@@ -98,9 +99,10 @@
     #preview-img { display: block; max-height: 380px; max-width: 100%; object-fit: contain; }
     #change-btn {
       position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.55); color: #fff;
-      border: none; border-radius: 8px; padding: 5px 12px; font-size: 0.78rem; cursor: pointer; font-weight: 600;
+      border: none; border-radius: 8px; padding: 10px 12px; font-size: 0.78rem; cursor: pointer; font-weight: 600;
+      min-height: 44px;
     }
-    #change-btn:hover { background: rgba(0,0,0,0.75); }
+    #change-btn:hover, #change-btn:active { background: rgba(0,0,0,0.75); }
 
     #convert-btn {
       display: block; width: 100%; margin-top: 1.25rem; padding: 0.9rem;
@@ -108,7 +110,7 @@
       color: #fff; border: none; border-radius: 12px;
       font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
     }
-    #convert-btn:hover:not(:disabled) { opacity: 0.88; }
+    #convert-btn:hover:not(:disabled), #convert-btn:active:not(:disabled) { opacity: 0.88; }
     #convert-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
     .ghost-btn {
@@ -116,7 +118,7 @@
       background: #fff; border: 1.5px solid #f0a8cc; color: #b5427a;
       border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.15s;
     }
-    .ghost-btn:hover { border-color: #e86fad; background: #ffe8f3; }
+    .ghost-btn:hover, .ghost-btn:active { border-color: #e86fad; background: #ffe8f3; }
 
     /* Result */
     #result-section { display: none; margin-top: 2rem; }
@@ -124,10 +126,11 @@
     .result-header h3 { font-size: 1rem; font-weight: 700; color: #b5427a; }
     .result-actions { display: flex; gap: 0.5rem; }
     .action-btn {
-      padding: 6px 14px; background: #fff; border: 1.5px solid #f0a8cc;
+      padding: 12px 14px; background: #fff; border: 1.5px solid #f0a8cc;
       color: #b5427a; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+      min-height: 44px;
     }
-    .action-btn:hover { border-color: #e86fad; background: #ffe8f3; }
+    .action-btn:hover, .action-btn:active { border-color: #e86fad; background: #ffe8f3; }
     .action-btn.copied, .action-btn.saved { border-color: #5a9e6f; color: #5a9e6f; background: #f0faf4; pointer-events: none; }
 
     #result-box {
@@ -213,12 +216,12 @@
 
     /* Stop button inside overlay */
     .yarn-stop-btn {
-      margin-top: 0.25rem; padding: 0.5rem 1.4rem;
+      margin-top: 0.25rem; padding: 0.75rem 1.4rem;
       background: rgba(181,66,122,0.12); border: 1.5px solid #e86fad;
       color: #b5427a; border-radius: 20px; font-size: 0.85rem; font-weight: 700;
-      cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em;
+      cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em; min-height: 44px;
     }
-    .yarn-stop-btn:hover { background: rgba(181,66,122,0.22); }
+    .yarn-stop-btn:hover, .yarn-stop-btn:active { background: rgba(181,66,122,0.22); }
 
     /* Done popup */
     .done-overlay {
@@ -243,7 +246,7 @@
       background: linear-gradient(135deg, #e86fad, #c94f9a);
       color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
     }
-    .done-ok-btn:hover { opacity: 0.88; }
+    .done-ok-btn:hover, .done-ok-btn:active { opacity: 0.88; }
 
     .error-msg { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 10px; padding: 1rem; color: #b91c1c; font-size: 0.9rem; }
 
@@ -263,13 +266,13 @@
     .pattern-card-date { font-size: 0.72rem; color: #c485a8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; }
     .pattern-card-preview { font-size: 0.82rem; color: #3d1a2e; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .pattern-card-footer { padding: 0.5rem 0.875rem 0.75rem; display: flex; justify-content: flex-end; }
-    .delete-btn { background: none; border: none; color: #f0a8cc; font-size: 0.78rem; cursor: pointer; font-weight: 600; padding: 2px 6px; border-radius: 6px; transition: all 0.15s; }
-    .delete-btn:hover { color: #e86fad; background: #ffe8f3; }
+    .delete-btn { background: none; border: none; color: #f0a8cc; font-size: 0.78rem; cursor: pointer; font-weight: 600; padding: 8px 10px; border-radius: 6px; transition: all 0.15s; min-height: 44px; }
+    .delete-btn:hover, .delete-btn:active { color: #e86fad; background: #ffe8f3; }
 
     /* Modal */
     .modal-overlay {
       display: none; position: fixed; inset: 0; background: rgba(61,26,46,0.5);
-      backdrop-filter: blur(4px); z-index: 100; padding: 1.5rem; overflow-y: auto;
+      backdrop-filter: blur(4px); z-index: 350; padding: 1.5rem; overflow-y: auto;
     }
     .modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
     .modal { background: #fff; border-radius: 20px; max-width: 720px; width: 100%; margin: auto; overflow: hidden; box-shadow: 0 20px 60px rgba(61,26,46,0.25); }
@@ -280,8 +283,8 @@
     .modal-img { width: 100%; max-height: 380px; object-fit: contain; background: #fff5f9; display: block; }
     .modal-pattern { padding: 1.5rem; white-space: pre-wrap; font-family: "Georgia", serif; font-size: 0.95rem; line-height: 1.75; color: #3d1a2e; max-height: 400px; overflow-y: auto; }
     .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #f5c6e0; display: flex; gap: 0.5rem; justify-content: flex-end; }
-    .modal-copy-btn { padding: 7px 16px; background: #fff; border: 1.5px solid #f0a8cc; color: #b5427a; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
-    .modal-copy-btn:hover { border-color: #e86fad; background: #ffe8f3; }
+    .modal-copy-btn { padding: 12px 16px; background: #fff; border: 1.5px solid #f0a8cc; color: #b5427a; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; min-height: 44px; }
+    .modal-copy-btn:hover, .modal-copy-btn:active { border-color: #e86fad; background: #ffe8f3; }
     .modal-copy-btn.copied { border-color: #5a9e6f; color: #5a9e6f; background: #f0faf4; }
 
     /* Share sheet */
@@ -303,14 +306,14 @@
       border-radius: 12px; cursor: pointer; transition: all 0.15s; font-size: 0.78rem;
       font-weight: 600; color: #b5427a; text-decoration: none; border-style: solid;
     }
-    .share-option:hover { border-color: #e86fad; background: #ffe8f3; }
+    .share-option:hover, .share-option:active { border-color: #e86fad; background: #ffe8f3; }
     .share-option .share-icon { font-size: 1.5rem; line-height: 1; }
     .share-cancel {
       display: block; width: 100%; padding: 0.75rem; background: #f5c6e0;
       border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700;
       color: #b5427a; cursor: pointer; transition: all 0.15s;
     }
-    .share-cancel:hover { background: #f0a8cc; }
+    .share-cancel:hover, .share-cancel:active { background: #f0a8cc; }
 
     /* Guest save modal */
     .guest-modal-overlay {
@@ -330,12 +333,12 @@
       padding: 0.8rem; background: linear-gradient(135deg, #e86fad, #c94f9a);
       color: #fff; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
     }
-    .guest-modal-primary:hover { opacity: 0.88; }
+    .guest-modal-primary:hover, .guest-modal-primary:active { opacity: 0.88; }
     .guest-modal-secondary {
       padding: 0.8rem; background: #fff; border: 1.5px solid #f0a8cc;
       color: #b5427a; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.15s;
     }
-    .guest-modal-secondary:hover { border-color: #e86fad; background: #ffe8f3; }
+    .guest-modal-secondary:hover, .guest-modal-secondary:active { border-color: #e86fad; background: #ffe8f3; }
     .guest-modal-dismiss { margin-top: 0.4rem; background: none; border: none; color: #c485a8; font-size: 0.82rem; cursor: pointer; }
     .guest-modal-dismiss:hover { color: #b5427a; }
 
@@ -356,9 +359,10 @@
 
     .auth-tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 2px solid #f5c6e0; }
     .auth-tab {
-      flex: 1; text-align: center; padding: 0.6rem; border: none; background: none;
+      flex: 1; text-align: center; padding: 0.75rem; border: none; background: none;
       font-size: 0.95rem; font-weight: 700; color: #c485a8; cursor: pointer;
       border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+      min-height: 44px;
     }
     .auth-tab.active { color: #b5427a; border-bottom-color: #e86fad; }
 
@@ -366,7 +370,7 @@
     .auth-field label { display: block; font-size: 0.82rem; font-weight: 700; color: #b5427a; margin-bottom: 0.35rem; }
     .auth-field input {
       width: 100%; padding: 0.7rem 0.9rem; border: 1.5px solid #f0a8cc; border-radius: 10px;
-      font-size: 0.95rem; color: #3d1a2e; background: #fff; transition: border-color 0.15s; outline: none;
+      font-size: 1rem; color: #3d1a2e; background: #fff; transition: border-color 0.15s; outline: none;
     }
     .auth-field input:focus { border-color: #e86fad; }
 
@@ -376,7 +380,7 @@
       color: #fff; border: none; border-radius: 12px;
       font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s; margin-top: 0.5rem;
     }
-    .auth-submit:hover:not(:disabled) { opacity: 0.88; }
+    .auth-submit:hover:not(:disabled), .auth-submit:active:not(:disabled) { opacity: 0.88; }
     .auth-submit:disabled { opacity: 0.55; cursor: not-allowed; }
 
     .auth-error {
@@ -428,6 +432,44 @@
 
     footer { text-align: center; margin-top: 3rem; color: #d4a0bf; font-size: 0.8rem; }
     footer a { color: #e86fad; text-decoration: none; }
+
+    /* ── Mobile / small-screen ── */
+    @media (max-width: 480px) {
+      /* SVG animation: scale down on small phones */
+      .yarn-ball-wrap, .yarn-ball-wrap svg { width: 200px; height: 155px; }
+
+      /* Result box: scrollable so long patterns don't dominate the screen */
+      #result-box { max-height: 60vh; overflow-y: auto; }
+
+      /* Header: stack title, user info fits without overflow */
+      .header-title h1 { font-size: 1.55rem; }
+      .user-email { max-width: 90px; }
+
+      /* Upload zone: tighter padding */
+      .upload-zone { padding: 2rem 1.25rem; }
+
+      /* Auth box: full-width friendly padding */
+      .auth-box { padding: 2rem 1.25rem; }
+
+      /* Pattern grid: single column */
+      .patterns-grid { grid-template-columns: 1fr; }
+
+      /* Modal: fill screen on small phones */
+      .modal { border-radius: 12px; }
+      .modal-pattern { max-height: 50vh; }
+
+      /* Share sheet options: 2 columns instead of 3 */
+      .share-options { grid-template-columns: repeat(2, 1fr); }
+
+      /* Password requirements: more readable */
+      .pw-req { font-size: 0.8rem; }
+    }
+
+    /* Extra-small phones (< 360px) */
+    @media (max-width: 360px) {
+      .header-title h1 { font-size: 1.3rem; }
+      .tab-btn { padding: 0.75rem 0.75rem; font-size: 0.85rem; }
+    }
   </style>
 </head>
 <body>
