@@ -106,6 +106,16 @@
     #copy-btn:hover { border-color: #c1693a; background: #fff3ec; }
     #copy-btn.copied { border-color: #5a9e6f; color: #5a9e6f; background: #f0faf4; }
 
+    #start-over-btn {
+      display: block; width: 100%; margin-top: 1rem;
+      padding: 0.75rem;
+      background: #fff; border: 1.5px solid #d4a58a;
+      color: #7c3f1e; border-radius: 12px;
+      font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+    }
+    #start-over-btn:hover { border-color: #c1693a; background: #fff3ec; }
+
     #result-box {
       background: #fff;
       border: 1px solid #e8d5c8;
@@ -175,6 +185,7 @@
       <button id="copy-btn">Copy</button>
     </div>
     <div id="result-box"></div>
+    <button id="start-over-btn">Start Over</button>
   </div>
 
   <footer>Powered by <a href="https://anthropic.com" target="_blank">Claude AI</a> · US crochet terminology</footer>
@@ -190,6 +201,7 @@
   const resultSection = document.getElementById("result-section");
   const resultBox = document.getElementById("result-box");
   const copyBtn = document.getElementById("copy-btn");
+  const startOverBtn = document.getElementById("start-over-btn");
 
   let currentFile = null;
 
@@ -293,6 +305,17 @@
       copyBtn.classList.add("copied");
       setTimeout(() => { copyBtn.textContent = "Copy"; copyBtn.classList.remove("copied"); }, 2000);
     });
+  });
+
+  startOverBtn.addEventListener("click", () => {
+    currentFile = null;
+    fileInput.value = "";
+    previewImg.src = "";
+    previewSection.style.display = "none";
+    resultSection.style.display = "none";
+    resultBox.textContent = "";
+    resultBox.className = "";
+    uploadZone.style.display = "block";
   });
 
   function showError(msg) {
