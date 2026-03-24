@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Crochet Chart Converter</title>
+  <title>Crochet Converter</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -17,64 +17,74 @@
 
     .container { max-width: 820px; margin: 0 auto; }
 
-    header { text-align: center; margin-bottom: 1.75rem; }
-    header h1 {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: #b5427a;
-      letter-spacing: -0.02em;
+    /* Woobles image strip */
+    .woobles-strip {
+      overflow: hidden; width: 100%; padding: 0.6rem 0; margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #fff0f5, #ffe8f3);
+      border-radius: 14px; border: 1.5px solid #f5c6e0;
+      position: relative;
     }
-    header h1 span { color: #e86fad; }
-    header p { color: #c485a8; margin-top: 0.4rem; font-size: 1rem; }
+    .woobles-strip::before, .woobles-strip::after {
+      content: ""; position: absolute; top: 0; bottom: 0; width: 60px; z-index: 2; pointer-events: none;
+    }
+    .woobles-strip::before { left: 0; background: linear-gradient(to right, #fff0f5, transparent); }
+    .woobles-strip::after  { right: 0; background: linear-gradient(to left, #fff0f5, transparent); }
+    .woobles-track {
+      display: flex; gap: 0.75rem; align-items: center;
+      animation: woobleScroll 60s linear infinite;
+      width: max-content;
+    }
+    .woobles-track:hover { animation-play-state: paused; }
+    .woobles-track img {
+      width: 90px; height: 90px; object-fit: contain; border-radius: 12px;
+      background: #fff; border: 1.5px solid #f5c6e0;
+      flex-shrink: 0; transition: transform 0.2s;
+    }
+    .woobles-track img:hover { transform: scale(1.12); }
+    @keyframes woobleScroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.75rem;
+    }
+    .header-title { text-align: center; flex: 1; }
+    .header-title h1 { font-size: 2rem; font-weight: 800; color: #b5427a; letter-spacing: -0.02em; }
+    .header-title h1 span { color: #e86fad; }
+    .header-title p { color: #c485a8; margin-top: 0.25rem; font-size: 0.9rem; }
+
+    .user-info { display: flex; align-items: center; gap: 0.6rem; font-size: 0.82rem; }
+    .user-email { color: #b5427a; font-weight: 600; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .logout-btn {
+      padding: 5px 12px; background: #fff; border: 1.5px solid #f0a8cc;
+      color: #b5427a; border-radius: 8px; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .logout-btn:hover { border-color: #e86fad; background: #ffe8f3; }
 
     /* Tabs */
-    .tabs {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 2rem;
-      border-bottom: 2px solid #f5c6e0;
-      padding-bottom: 0;
-    }
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 2px solid #f5c6e0; }
     .tab-btn {
-      padding: 0.6rem 1.25rem;
-      border: none; background: none;
-      font-size: 0.95rem; font-weight: 700;
-      color: #c485a8; cursor: pointer;
-      border-bottom: 3px solid transparent;
-      margin-bottom: -2px;
-      transition: all 0.15s;
+      padding: 0.6rem 1.25rem; border: none; background: none;
+      font-size: 0.95rem; font-weight: 700; color: #c485a8;
+      cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s;
     }
     .tab-btn:hover { color: #b5427a; }
     .tab-btn.active { color: #b5427a; border-bottom-color: #e86fad; }
-    .tab-btn .badge {
-      display: inline-block;
-      background: #f5c6e0;
-      color: #b5427a;
-      border-radius: 99px;
-      font-size: 0.7rem;
-      padding: 1px 7px;
-      margin-left: 5px;
-      font-weight: 800;
+    .badge {
+      display: inline-block; background: #f5c6e0; color: #b5427a;
+      border-radius: 99px; font-size: 0.7rem; padding: 1px 7px; margin-left: 5px; font-weight: 800;
     }
 
-    /* Upload area */
+    /* Upload */
     .upload-zone {
-      border: 2.5px dashed #f0a8cc;
-      border-radius: 16px;
-      padding: 3rem 2rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: #fff5f9;
-      position: relative;
+      border: 2.5px dashed #f0a8cc; border-radius: 16px; padding: 3rem 2rem;
+      text-align: center; cursor: pointer; transition: all 0.2s; background: #fff5f9; position: relative;
     }
-    .upload-zone:hover, .upload-zone.drag-over {
-      border-color: #e86fad;
-      background: #ffe8f3;
-    }
-    .upload-zone input[type="file"] {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-    }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: #e86fad; background: #ffe8f3; }
+    .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
     .upload-icon { font-size: 3rem; margin-bottom: 0.75rem; }
     .upload-zone h2 { font-size: 1.1rem; font-weight: 700; color: #b5427a; }
     .upload-zone p { color: #c485a8; font-size: 0.875rem; margin-top: 0.3rem; }
@@ -82,260 +92,457 @@
     /* Preview */
     #preview-section { display: none; margin-top: 1.5rem; }
     #preview-wrap {
-      position: relative;
-      border-radius: 12px;
-      overflow: hidden;
-      background: #fff;
-      border: 1px solid #f5c6e0;
-      display: inline-block;
-      max-width: 100%;
+      position: relative; border-radius: 12px; overflow: hidden;
+      background: #fff; border: 1px solid #f5c6e0; display: inline-block; max-width: 100%;
     }
-    #preview-img {
-      display: block;
-      max-height: 380px;
-      max-width: 100%;
-      object-fit: contain;
-    }
+    #preview-img { display: block; max-height: 380px; max-width: 100%; object-fit: contain; }
     #change-btn {
-      position: absolute; top: 10px; right: 10px;
-      background: rgba(0,0,0,0.55); color: #fff;
-      border: none; border-radius: 8px;
-      padding: 5px 12px; font-size: 0.78rem; cursor: pointer;
-      font-weight: 600;
+      position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.55); color: #fff;
+      border: none; border-radius: 8px; padding: 5px 12px; font-size: 0.78rem; cursor: pointer; font-weight: 600;
     }
     #change-btn:hover { background: rgba(0,0,0,0.75); }
 
-    /* Convert button */
     #convert-btn {
-      display: block; width: 100%; margin-top: 1.25rem;
-      padding: 0.9rem;
+      display: block; width: 100%; margin-top: 1.25rem; padding: 0.9rem;
       background: linear-gradient(135deg, #e86fad, #c94f9a);
-      color: #fff;
-      border: none; border-radius: 12px;
-      font-size: 1.05rem; font-weight: 700;
-      cursor: pointer; transition: opacity 0.15s;
-      letter-spacing: 0.01em;
+      color: #fff; border: none; border-radius: 12px;
+      font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
     }
     #convert-btn:hover:not(:disabled) { opacity: 0.88; }
     #convert-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-    /* Result area */
-    #result-section { display: none; margin-top: 2rem; }
-    .result-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 0.75rem;
+    .ghost-btn {
+      display: block; width: 100%; margin-bottom: 1rem; padding: 0.75rem;
+      background: #fff; border: 1.5px solid #f0a8cc; color: #b5427a;
+      border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.15s;
     }
+    .ghost-btn:hover { border-color: #e86fad; background: #ffe8f3; }
+
+    /* Result */
+    #result-section { display: none; margin-top: 2rem; }
+    .result-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
     .result-header h3 { font-size: 1rem; font-weight: 700; color: #b5427a; }
     .result-actions { display: flex; gap: 0.5rem; }
-
-    #copy-btn, #save-btn {
-      padding: 6px 14px;
-      background: #fff; border: 1.5px solid #f0a8cc;
-      color: #b5427a; border-radius: 8px;
-      font-size: 0.82rem; font-weight: 600; cursor: pointer;
-      transition: all 0.15s;
+    .action-btn {
+      padding: 6px 14px; background: #fff; border: 1.5px solid #f0a8cc;
+      color: #b5427a; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
     }
-    #copy-btn:hover, #save-btn:hover { border-color: #e86fad; background: #ffe8f3; }
-    #copy-btn.copied { border-color: #5a9e6f; color: #5a9e6f; background: #f0faf4; }
-    #save-btn.saved { border-color: #5a9e6f; color: #5a9e6f; background: #f0faf4; pointer-events: none; }
+    .action-btn:hover { border-color: #e86fad; background: #ffe8f3; }
+    .action-btn.copied, .action-btn.saved { border-color: #5a9e6f; color: #5a9e6f; background: #f0faf4; pointer-events: none; }
 
     #result-box {
-      background: #fff;
-      border: 1px solid #f5c6e0;
-      border-radius: 12px;
-      padding: 1.5rem;
-      white-space: pre-wrap;
-      font-family: "Georgia", serif;
-      font-size: 0.95rem;
-      line-height: 1.75;
-      color: #3d1a2e;
-      min-height: 120px;
+      background: #fff; border: 1px solid #f5c6e0; border-radius: 12px; padding: 1.5rem;
+      white-space: pre-wrap; font-family: "Georgia", serif; font-size: 0.95rem;
+      line-height: 1.75; color: #3d1a2e; min-height: 120px;
     }
     #result-box.loading { color: #c485a8; font-style: italic; }
 
     .cursor {
-      display: inline-block;
-      width: 2px; height: 1em;
-      background: #e86fad;
-      vertical-align: text-bottom;
-      animation: blink 0.8s step-end infinite;
-      margin-left: 1px;
+      display: inline-block; width: 2px; height: 1em; background: #e86fad;
+      vertical-align: text-bottom; animation: blink 0.8s step-end infinite; margin-left: 1px;
     }
     @keyframes blink { 50% { opacity: 0; } }
 
-    #start-over-btn {
-      display: block; width: 100%; margin-top: 1rem;
-      padding: 0.75rem;
-      background: #fff; border: 1.5px solid #f0a8cc;
-      color: #b5427a; border-radius: 12px;
-      font-size: 0.95rem; font-weight: 700;
-      cursor: pointer; transition: all 0.15s;
+    /* Crochet loading overlay */
+    .yarn-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(255,240,248,0.93);
+      backdrop-filter: blur(10px); z-index: 400; flex-direction: column;
+      align-items: center; justify-content: center; gap: 1.2rem;
     }
-    #start-over-btn:hover { border-color: #e86fad; background: #ffe8f3; }
+    .yarn-overlay.active { display: flex; }
+    .yarn-label {
+      font-size: 1.05rem; font-weight: 700; color: #b5427a; letter-spacing: 0.01em;
+    }
+    .yarn-dots::after {
+      content: ""; animation: yarnDots 1.4s steps(4, end) infinite;
+    }
+    @keyframes yarnDots {
+      0%   { content: "";    }
+      25%  { content: ".";   }
+      50%  { content: "..";  }
+      75%  { content: "..."; }
+    }
+    .yarn-sublabel { font-size: 0.82rem; color: #c485a8; margin-top: -0.6rem; }
 
-    .error-msg {
-      background: #fef2f2; border: 1px solid #fca5a5;
-      border-radius: 10px; padding: 1rem;
-      color: #b91c1c; font-size: 0.9rem; margin-top: 1rem;
+    /* Crochet scene SVG */
+    .yarn-ball-wrap { width: 270px; height: 210px; filter: drop-shadow(0 5px 15px rgba(181,66,122,0.18)); }
+    .yarn-ball-wrap svg { width: 270px; height: 210px; overflow: visible; }
+
+    /* Hook+hand: inserts into stitch and pulls back */
+    .hook-hand-group {
+      transform-box: fill-box; transform-origin: 84% 50%;
+      animation: hookStitch 1.3s ease-in-out infinite;
+    }
+    @keyframes hookStitch {
+      0%   { transform: translate(0,0)      rotate(0deg); }
+      30%  { transform: translate(-6px,5px)  rotate(4deg); }
+      52%  { transform: translate(-8px,7px)  rotate(6deg); }
+      78%  { transform: translate(-3px,2px)  rotate(2deg); }
+      100% { transform: translate(0,0)      rotate(0deg); }
     }
 
-    /* ── Saved Patterns Library ── */
+    /* Yarn strand from ball to hook pulses gently */
+    .yarn-strand-live {
+      stroke-dasharray: 5 4;
+      animation: strandPulse 1.1s ease-in-out infinite;
+    }
+    @keyframes strandPulse {
+      0%,100% { opacity: 0.75; stroke-dashoffset: 0; }
+      50%      { opacity: 1;    stroke-dashoffset: 8; }
+    }
+
+    /* Fabric rows appear to grow */
+    .fabric-grow {
+      transform-box: fill-box; transform-origin: center bottom;
+      animation: fabricBob 1.1s ease-in-out infinite;
+    }
+    @keyframes fabricBob {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-2px); }
+    }
+
+    /* Yarn ball spins slowly */
+    .ball-spin {
+      transform-box: fill-box; transform-origin: center;
+      animation: ballRoll 3s linear infinite;
+    }
+    @keyframes ballRoll {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* Stop button inside overlay */
+    .yarn-stop-btn {
+      margin-top: 0.25rem; padding: 0.5rem 1.4rem;
+      background: rgba(181,66,122,0.12); border: 1.5px solid #e86fad;
+      color: #b5427a; border-radius: 20px; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em;
+    }
+    .yarn-stop-btn:hover { background: rgba(181,66,122,0.22); }
+
+    /* Done popup */
+    .done-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(61,26,46,0.45);
+      backdrop-filter: blur(4px); z-index: 500; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .done-overlay.open { display: flex; }
+    .done-popup {
+      background: #fff; border-radius: 20px; max-width: 340px; width: 100%;
+      padding: 2rem 1.75rem; text-align: center; box-shadow: 0 20px 60px rgba(61,26,46,0.25);
+      animation: popIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .done-icon { font-size: 2.75rem; margin-bottom: 0.6rem; }
+    .done-popup h3 { font-size: 1.2rem; font-weight: 800; color: #b5427a; margin-bottom: 0.4rem; }
+    .done-popup p { font-size: 0.875rem; color: #c485a8; line-height: 1.5; margin-bottom: 1.5rem; }
+    .done-ok-btn {
+      display: block; width: 100%; padding: 0.8rem;
+      background: linear-gradient(135deg, #e86fad, #c94f9a);
+      color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
+    }
+    .done-ok-btn:hover { opacity: 0.88; }
+
+    .error-msg { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 10px; padding: 1rem; color: #b91c1c; font-size: 0.9rem; }
+
+    /* Library */
     #library-view { display: none; }
-
-    .library-empty {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: #c485a8;
-    }
+    .library-empty { text-align: center; padding: 4rem 2rem; color: #c485a8; }
     .library-empty .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
-    .library-empty p { font-size: 1rem; }
 
-    .patterns-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1.25rem;
-    }
-
+    .patterns-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem; }
     .pattern-card {
-      background: #fff;
-      border: 1.5px solid #f5c6e0;
-      border-radius: 14px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: all 0.2s;
+      background: #fff; border: 1.5px solid #f5c6e0; border-radius: 14px;
+      overflow: hidden; cursor: pointer; transition: all 0.2s;
     }
-    .pattern-card:hover {
-      border-color: #e86fad;
-      box-shadow: 0 4px 20px rgba(232, 111, 173, 0.15);
-      transform: translateY(-2px);
-    }
-    .pattern-card-img {
-      width: 100%; height: 160px;
-      object-fit: cover;
-      background: #fff5f9;
-      display: block;
-    }
+    .pattern-card:hover { border-color: #e86fad; box-shadow: 0 4px 20px rgba(232,111,173,0.15); transform: translateY(-2px); }
+    .pattern-card-img { width: 100%; height: 160px; object-fit: cover; background: #fff5f9; display: block; }
     .pattern-card-body { padding: 0.875rem; }
-    .pattern-card-date {
-      font-size: 0.72rem;
-      color: #c485a8;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.35rem;
-    }
-    .pattern-card-preview {
-      font-size: 0.82rem;
-      color: #3d1a2e;
-      line-height: 1.5;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .pattern-card-footer {
-      padding: 0.5rem 0.875rem 0.75rem;
-      display: flex; justify-content: flex-end;
-    }
-    .delete-btn {
-      background: none; border: none;
-      color: #f0a8cc; font-size: 0.78rem;
-      cursor: pointer; font-weight: 600;
-      padding: 2px 6px; border-radius: 6px;
-      transition: all 0.15s;
-    }
+    .pattern-card-date { font-size: 0.72rem; color: #c485a8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; }
+    .pattern-card-preview { font-size: 0.82rem; color: #3d1a2e; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .pattern-card-footer { padding: 0.5rem 0.875rem 0.75rem; display: flex; justify-content: flex-end; }
+    .delete-btn { background: none; border: none; color: #f0a8cc; font-size: 0.78rem; cursor: pointer; font-weight: 600; padding: 2px 6px; border-radius: 6px; transition: all 0.15s; }
     .delete-btn:hover { color: #e86fad; background: #ffe8f3; }
 
-    /* Pattern detail modal */
+    /* Modal */
     .modal-overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(61, 26, 46, 0.5);
-      backdrop-filter: blur(4px);
-      z-index: 100;
-      padding: 1.5rem;
-      overflow-y: auto;
+      display: none; position: fixed; inset: 0; background: rgba(61,26,46,0.5);
+      backdrop-filter: blur(4px); z-index: 100; padding: 1.5rem; overflow-y: auto;
     }
     .modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
-    .modal {
-      background: #fff;
-      border-radius: 20px;
-      max-width: 720px;
-      width: 100%;
-      margin: auto;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(61, 26, 46, 0.25);
-    }
-    .modal-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid #f5c6e0;
-    }
+    .modal { background: #fff; border-radius: 20px; max-width: 720px; width: 100%; margin: auto; overflow: hidden; box-shadow: 0 20px 60px rgba(61,26,46,0.25); }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid #f5c6e0; }
     .modal-header h3 { font-size: 1rem; font-weight: 800; color: #b5427a; }
-    .modal-close {
-      background: none; border: none;
-      font-size: 1.4rem; cursor: pointer;
-      color: #c485a8; line-height: 1;
-      padding: 2px 6px; border-radius: 6px;
-    }
+    .modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #c485a8; line-height: 1; padding: 2px 6px; border-radius: 6px; }
     .modal-close:hover { background: #ffe8f3; color: #b5427a; }
-    .modal-img {
-      width: 100%; max-height: 380px;
-      object-fit: contain;
-      background: #fff5f9;
-      display: block;
-    }
-    .modal-pattern {
-      padding: 1.5rem;
-      white-space: pre-wrap;
-      font-family: "Georgia", serif;
-      font-size: 0.95rem;
-      line-height: 1.75;
-      color: #3d1a2e;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    .modal-footer {
-      padding: 1rem 1.5rem;
-      border-top: 1px solid #f5c6e0;
-      display: flex; gap: 0.5rem; justify-content: flex-end;
-    }
-    .modal-copy-btn {
-      padding: 7px 16px;
-      background: #fff; border: 1.5px solid #f0a8cc;
-      color: #b5427a; border-radius: 8px;
-      font-size: 0.85rem; font-weight: 600; cursor: pointer;
-      transition: all 0.15s;
-    }
+    .modal-img { width: 100%; max-height: 380px; object-fit: contain; background: #fff5f9; display: block; }
+    .modal-pattern { padding: 1.5rem; white-space: pre-wrap; font-family: "Georgia", serif; font-size: 0.95rem; line-height: 1.75; color: #3d1a2e; max-height: 400px; overflow-y: auto; }
+    .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #f5c6e0; display: flex; gap: 0.5rem; justify-content: flex-end; }
+    .modal-copy-btn { padding: 7px 16px; background: #fff; border: 1.5px solid #f0a8cc; color: #b5427a; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
     .modal-copy-btn:hover { border-color: #e86fad; background: #ffe8f3; }
     .modal-copy-btn.copied { border-color: #5a9e6f; color: #5a9e6f; background: #f0faf4; }
 
-    footer {
-      text-align: center; margin-top: 3rem;
-      color: #d4a0bf; font-size: 0.8rem;
+    /* Share sheet */
+    .share-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(61,26,46,0.45);
+      backdrop-filter: blur(3px); z-index: 300; padding: 1rem;
+      align-items: flex-end; justify-content: center;
     }
+    .share-overlay.open { display: flex; }
+    .share-sheet {
+      background: #fff; border-radius: 20px; max-width: 440px; width: 100%;
+      padding: 1.5rem; box-shadow: 0 -4px 40px rgba(181,66,122,0.18);
+    }
+    .share-sheet h4 { font-size: 1rem; font-weight: 800; color: #b5427a; margin-bottom: 1.25rem; text-align: center; }
+    .share-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+    .share-option {
+      display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+      padding: 0.875rem 0.5rem; background: #fff5f9; border: 1.5px solid #f5c6e0;
+      border-radius: 12px; cursor: pointer; transition: all 0.15s; font-size: 0.78rem;
+      font-weight: 600; color: #b5427a; text-decoration: none; border-style: solid;
+    }
+    .share-option:hover { border-color: #e86fad; background: #ffe8f3; }
+    .share-option .share-icon { font-size: 1.5rem; line-height: 1; }
+    .share-cancel {
+      display: block; width: 100%; padding: 0.75rem; background: #f5c6e0;
+      border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700;
+      color: #b5427a; cursor: pointer; transition: all 0.15s;
+    }
+    .share-cancel:hover { background: #f0a8cc; }
+
+    /* Guest save modal */
+    .guest-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(61,26,46,0.5);
+      backdrop-filter: blur(4px); z-index: 300; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    .guest-modal-overlay.open { display: flex; }
+    .guest-modal {
+      background: #fff; border-radius: 20px; max-width: 380px; width: 100%;
+      padding: 2rem 1.75rem; box-shadow: 0 20px 60px rgba(61,26,46,0.25); text-align: center;
+    }
+    .guest-modal-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .guest-modal h3 { font-size: 1.15rem; font-weight: 800; color: #b5427a; margin-bottom: 0.5rem; }
+    .guest-modal p { font-size: 0.875rem; color: #c485a8; line-height: 1.55; margin-bottom: 1.5rem; }
+    .guest-modal-btns { display: flex; flex-direction: column; gap: 0.6rem; }
+    .guest-modal-primary {
+      padding: 0.8rem; background: linear-gradient(135deg, #e86fad, #c94f9a);
+      color: #fff; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
+    }
+    .guest-modal-primary:hover { opacity: 0.88; }
+    .guest-modal-secondary {
+      padding: 0.8rem; background: #fff; border: 1.5px solid #f0a8cc;
+      color: #b5427a; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.15s;
+    }
+    .guest-modal-secondary:hover { border-color: #e86fad; background: #ffe8f3; }
+    .guest-modal-dismiss { margin-top: 0.4rem; background: none; border: none; color: #c485a8; font-size: 0.82rem; cursor: pointer; }
+    .guest-modal-dismiss:hover { color: #b5427a; }
+
+    /* Auth Screen */
+    #auth-screen {
+      display: none; min-height: 100vh; align-items: center; justify-content: center;
+      position: fixed; inset: 0; background: #fff0f5; z-index: 200; padding: 1rem;
+    }
+    #auth-screen.visible { display: flex; }
+    .auth-box {
+      background: #fff; border: 1.5px solid #f5c6e0; border-radius: 20px; padding: 2.5rem 2rem;
+      width: 100%; max-width: 400px; box-shadow: 0 8px 40px rgba(181,66,122,0.12);
+    }
+    .auth-logo { text-align: center; margin-bottom: 1.75rem; }
+    .auth-logo h1 { font-size: 1.8rem; font-weight: 800; color: #b5427a; }
+    .auth-logo h1 span { color: #e86fad; }
+    .auth-logo p { color: #c485a8; font-size: 0.875rem; margin-top: 0.25rem; }
+
+    .auth-tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 2px solid #f5c6e0; }
+    .auth-tab {
+      flex: 1; text-align: center; padding: 0.6rem; border: none; background: none;
+      font-size: 0.95rem; font-weight: 700; color: #c485a8; cursor: pointer;
+      border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+    }
+    .auth-tab.active { color: #b5427a; border-bottom-color: #e86fad; }
+
+    .auth-field { margin-bottom: 1rem; }
+    .auth-field label { display: block; font-size: 0.82rem; font-weight: 700; color: #b5427a; margin-bottom: 0.35rem; }
+    .auth-field input {
+      width: 100%; padding: 0.7rem 0.9rem; border: 1.5px solid #f0a8cc; border-radius: 10px;
+      font-size: 0.95rem; color: #3d1a2e; background: #fff; transition: border-color 0.15s; outline: none;
+    }
+    .auth-field input:focus { border-color: #e86fad; }
+
+    .auth-submit {
+      display: block; width: 100%; padding: 0.85rem;
+      background: linear-gradient(135deg, #e86fad, #c94f9a);
+      color: #fff; border: none; border-radius: 12px;
+      font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s; margin-top: 0.5rem;
+    }
+    .auth-submit:hover:not(:disabled) { opacity: 0.88; }
+    .auth-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .auth-error {
+      background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px;
+      padding: 0.7rem 0.9rem; color: #b91c1c; font-size: 0.85rem; margin-bottom: 1rem; display: none;
+    }
+    .auth-error.visible { display: block; }
+    .auth-success {
+      background: #f0faf4; border: 1px solid #86efac; border-radius: 8px;
+      padding: 0.7rem 0.9rem; color: #15803d; font-size: 0.85rem; margin-bottom: 1rem; display: none; text-align: center;
+    }
+    .auth-success.visible { display: block; }
+    .auth-back { background: none; border: none; color: #c485a8; font-size: 0.82rem; cursor: pointer; margin-bottom: 1.25rem; padding: 0; display: flex; align-items: center; gap: 0.3rem; }
+    .auth-back:hover { color: #b5427a; }
+    .forgot-link { display: block; text-align: right; font-size: 0.78rem; color: #c485a8; background: none; border: none; cursor: pointer; padding: 0; margin-top: -0.5rem; margin-bottom: 1rem; }
+    .forgot-link:hover { color: #b5427a; }
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 2.6rem; }
+    .pw-toggle {
+      position: absolute; right: 0.7rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: #c485a8;
+      font-size: 1rem; line-height: 1; padding: 4px; border-radius: 4px; transition: color 0.15s;
+    }
+    .pw-toggle:hover { color: #b5427a; }
+    .pw-req { font-size: 0.76rem; color: #c485a8; transition: color 0.15s; }
+    .pw-req.met { color: #5a9e6f; }
+    .pw-req.met::first-letter { content: "✓"; }
+
+    .auth-divider {
+      text-align: center; margin: 1.25rem 0 1rem; position: relative;
+    }
+    .auth-divider::before {
+      content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #f5c6e0;
+    }
+    .auth-divider span {
+      background: #fff; padding: 0 0.75rem; color: #c485a8; font-size: 0.8rem; position: relative;
+    }
+    .guest-btn {
+      display: block; width: 100%; padding: 0.8rem;
+      background: #fff; border: 1.5px solid #f0a8cc;
+      color: #b5427a; border-radius: 12px;
+      font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.15s;
+    }
+    .guest-btn:hover { border-color: #e86fad; background: #ffe8f3; }
+    .guest-note {
+      margin-top: 0.85rem; font-size: 0.78rem; color: #c485a8;
+      text-align: center; line-height: 1.5;
+    }
+
+    footer { text-align: center; margin-top: 3rem; color: #d4a0bf; font-size: 0.8rem; }
     footer a { color: #e86fad; text-decoration: none; }
   </style>
 </head>
 <body>
-<div class="container">
+
+<!-- Auth Screen -->
+<div id="auth-screen" class="visible">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <h1>🧶 Crochet <span>Converter</span></h1>
+      <p>Sign in to save and access your patterns</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Create Account</button>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" />
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password" />
+        <button type="button" class="pw-toggle" data-target="auth-password" title="Show/hide password">👁</button>
+      </div>
+      <div id="pw-requirements" style="display:none;margin-top:0.6rem;display:none">
+        <div style="font-size:0.75rem;color:#c485a8;font-weight:600;margin-bottom:0.35rem;">Password must have:</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:0.2rem">
+          <li class="pw-req" id="req-length">✗ At least 8 characters</li>
+          <li class="pw-req" id="req-upper">✗ One uppercase letter</li>
+          <li class="pw-req" id="req-lower">✗ One lowercase letter</li>
+          <li class="pw-req" id="req-number">✗ One number</li>
+          <li class="pw-req" id="req-special">✗ One special character (!@#$% etc.)</li>
+        </ul>
+      </div>
+    </div>
+    <button class="forgot-link" id="forgot-link">Forgot password?</button>
+    <button class="auth-submit" id="auth-submit">Sign In</button>
+    <div class="auth-divider"><span>or</span></div>
+    <button class="guest-btn" id="guest-btn">Continue as Guest</button>
+    <p class="guest-note">Guests can convert charts but cannot save patterns. <span onclick="switchAuthTab('register')" style="color:#e86fad;cursor:pointer;font-weight:600;">Create a free account</span> to save your conversions.</p>
+
+    <!-- Forgot password panel -->
+    <div id="forgot-panel" style="display:none">
+      <button class="auth-back" id="forgot-back">← Back to sign in</button>
+      <div class="auth-logo" style="margin-bottom:1rem">
+        <h1 style="font-size:1.4rem">Reset Password</h1>
+        <p>Enter your email and we'll send you a reset link.</p>
+      </div>
+      <div class="auth-error" id="forgot-error"></div>
+      <div class="auth-success" id="forgot-success"></div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="forgot-email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <button class="auth-submit" id="forgot-submit">Send Reset Link</button>
+    </div>
+
+    <!-- Reset password panel -->
+    <div id="reset-panel" style="display:none">
+      <div class="auth-logo" style="margin-bottom:1rem">
+        <h1 style="font-size:1.4rem">New Password</h1>
+        <p>Choose a new password for your account.</p>
+      </div>
+      <div class="auth-error" id="reset-error"></div>
+      <div class="auth-field">
+        <label>New Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="reset-password" placeholder="At least 8 characters" autocomplete="new-password" />
+          <button type="button" class="pw-toggle" data-target="reset-password" title="Show/hide password">👁</button>
+        </div>
+      </div>
+      <div class="auth-field">
+        <label>Confirm Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="reset-confirm" placeholder="••••••••" autocomplete="new-password" />
+          <button type="button" class="pw-toggle" data-target="reset-confirm" title="Show/hide password">👁</button>
+        </div>
+      </div>
+      <button class="auth-submit" id="reset-submit">Set New Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div class="container" id="app" style="display:none">
   <header>
-    <h1>🧶 Crochet Chart <span>Converter</span></h1>
-    <p>Upload a crochet chart image — get a full written pattern in US terminology</p>
+    <div style="width:160px"></div>
+    <div class="header-title">
+      <h1>🧶 Crochet <span>Converter</span></h1>
+      <p>Upload a chart image and/or image of finished crochet project — get a written pattern in US crochet terminology. Including a chart image is likely to deliver better results.</p>
+    </div>
+    <div class="user-info">
+      <span class="user-email" id="user-email-display"></span>
+      <button class="logout-btn" id="signout-btn">Sign out</button>
+    </div>
   </header>
+
+  <!-- Woobles inspiration strip -->
+  <div class="woobles-strip">
+    <div class="woobles-track" id="woobles-track"></div>
+  </div>
 
   <div class="tabs">
     <button class="tab-btn active" id="tab-convert" onclick="showTab('convert')">Convert</button>
-    <button class="tab-btn" id="tab-library" onclick="showTab('library')">Saved Patterns <span class="badge" id="count-badge">0</span></button>
+    <button class="tab-btn" id="tab-library" onclick="showTab('library')">Saved Patterns <span class="badge" id="count-badge" style="display:none">0</span></button>
   </div>
 
-  <!-- ── Convert View ── -->
   <div id="convert-view">
     <div class="upload-zone" id="upload-zone">
       <input type="file" id="file-input" accept="image/*" />
       <div class="upload-icon">📷</div>
-      <h2>Drop your chart image here</h2>
-      <p>or click to browse · JPG, PNG, WEBP up to 20 MB</p>
+      <h2>Drop a chart or finished project photo</h2>
+      <p>Crochet chart/diagram <em>or</em> photo of a finished piece · JPG, PNG, WEBP up to 20 MB</p>
     </div>
 
     <div id="preview-section">
@@ -347,19 +554,19 @@
     </div>
 
     <div id="result-section">
+      <button class="ghost-btn" id="start-over-btn">← Start Over</button>
       <div class="result-header">
         <h3>Written Pattern</h3>
         <div class="result-actions">
-          <button id="copy-btn">Copy</button>
-          <button id="save-btn">💾 Save</button>
+          <button class="action-btn" id="copy-btn">Copy</button>
+          <button class="action-btn" id="share-btn">↗ Share</button>
+          <button class="action-btn" id="save-btn">💾 Save</button>
         </div>
       </div>
       <div id="result-box"></div>
-      <button id="start-over-btn">Start Over</button>
     </div>
   </div>
 
-  <!-- ── Library View ── -->
   <div id="library-view">
     <div class="library-empty" id="library-empty">
       <div class="empty-icon">🧶</div>
@@ -369,6 +576,347 @@
   </div>
 
   <footer>Powered by <a href="https://anthropic.com" target="_blank">Claude AI</a> · US crochet terminology</footer>
+</div>
+
+<!-- Yarn ball loading overlay -->
+<div class="yarn-overlay" id="yarn-overlay">
+  <div class="yarn-ball-wrap">
+    <!--
+      Realistic crocheting scene: right hand in pencil grip, working a hook
+      into a small fabric piece. Yarn ball sits lower-left with a live strand
+      running to the hook throat.
+      viewBox: 270 × 210
+    -->
+    <svg viewBox="0 0 270 210" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Yarn ball 3D shading -->
+        <radialGradient id="rBall" cx="36%" cy="28%" r="63%">
+          <stop offset="0%"   stop-color="#fde8f4"/>
+          <stop offset="48%"  stop-color="#f0a8cc"/>
+          <stop offset="100%" stop-color="#b5427a"/>
+        </radialGradient>
+        <radialGradient id="rBallHi" cx="30%" cy="22%" r="30%">
+          <stop offset="0%"   stop-color="#fff" stop-opacity="0.72"/>
+          <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+        </radialGradient>
+        <clipPath id="rBallClip"><circle cx="47" cy="163" r="27"/></clipPath>
+
+        <!-- Skin tones -->
+        <linearGradient id="skA" x1="0" y1="0" x2="0.4" y2="1">
+          <stop offset="0%"   stop-color="#fddcb8"/>
+          <stop offset="100%" stop-color="#e8a870"/>
+        </linearGradient>
+        <linearGradient id="skB" x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0%"   stop-color="#f5c896"/>
+          <stop offset="100%" stop-color="#d89a60"/>
+        </linearGradient>
+        <linearGradient id="skC" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#fce2c0"/>
+          <stop offset="100%" stop-color="#f0b880"/>
+        </linearGradient>
+
+        <!-- Hook metal (silver, light from top) -->
+        <linearGradient id="metalG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#f0f0f0"/>
+          <stop offset="28%"  stop-color="#ffffff"/>
+          <stop offset="65%"  stop-color="#cccccc"/>
+          <stop offset="100%" stop-color="#a8a8a8"/>
+        </linearGradient>
+
+        <!-- Hook handle — teal/aluminium (Clover Amour style) -->
+        <linearGradient id="handleG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#80d0ea"/>
+          <stop offset="38%"  stop-color="#44aad0"/>
+          <stop offset="100%" stop-color="#1e72a8"/>
+        </linearGradient>
+
+        <!-- V-stitch crochet fabric pattern -->
+        <pattern id="vPat" x="0" y="0" width="9" height="7" patternUnits="userSpaceOnUse">
+          <path d="M1.5 0.5 L4.5 4 L7.5 0.5" stroke="#c040a0" stroke-width="0.9" fill="none" stroke-linecap="round"/>
+          <path d="M1.5 3.5 L4.5 6 L7.5 3.5"  stroke="#e878c2" stroke-width="0.65" fill="none" stroke-linecap="round" opacity="0.5"/>
+        </pattern>
+      </defs>
+
+      <!-- ── Scene floor shadow ─────────────────────────────────── -->
+      <ellipse cx="150" cy="202" rx="95" ry="6" fill="rgba(181,66,122,0.09)"/>
+
+      <!-- ══ YARN BALL (lower-left) ════════════════════════════════ -->
+      <ellipse cx="47" cy="184" rx="21" ry="6" fill="rgba(181,66,122,0.17)"/>
+      <circle cx="47" cy="163" r="27" fill="url(#rBall)"/>
+      <g class="ball-spin" clip-path="url(#rBallClip)">
+        <ellipse cx="47" cy="163" rx="27" ry="10"  stroke="#e86fad" stroke-width="1.9" fill="none" opacity="0.62"/>
+        <ellipse cx="47" cy="163" rx="27" ry="17"  stroke="#c94f9a" stroke-width="1.5" fill="none" opacity="0.48" transform="rotate(40 47 163)"/>
+        <ellipse cx="47" cy="163" rx="23" ry="8"   stroke="#f0b8d6" stroke-width="1.3" fill="none" opacity="0.42" transform="rotate(-28 47 163)"/>
+        <ellipse cx="47" cy="163" rx="27" ry="13"  stroke="#da6db5" stroke-width="1.3" fill="none" opacity="0.40" transform="rotate(75 47 163)"/>
+        <ellipse cx="47" cy="163" rx="19" ry="24"  stroke="#e86fad" stroke-width="1.0" fill="none" opacity="0.28" transform="rotate(15 47 163)"/>
+      </g>
+      <circle cx="47" cy="163" r="27" fill="url(#rBallHi)"/>
+      <circle cx="47" cy="163" r="27" fill="none" stroke="#a03570" stroke-width="0.7" opacity="0.22"/>
+
+      <!-- ══ CROCHET FABRIC (centre) ════════════════════════════════ -->
+      <g class="fabric-grow">
+        <!-- shadow -->
+        <rect x="93" y="142" width="84" height="50" rx="5" fill="rgba(181,66,122,0.09)" transform="translate(3,4)"/>
+        <!-- base -->
+        <rect x="93" y="138" width="84" height="50" rx="5" fill="#fce3f2"/>
+        <!-- stitch texture -->
+        <rect x="93" y="138" width="84" height="50" rx="5" fill="url(#vPat)" opacity="0.88"/>
+        <!-- row dividers -->
+        <line x1="93" y1="149" x2="177" y2="149" stroke="#c040a0" stroke-width="0.6" opacity="0.32"/>
+        <line x1="93" y1="160" x2="177" y2="160" stroke="#c040a0" stroke-width="0.6" opacity="0.32"/>
+        <line x1="93" y1="171" x2="177" y2="171" stroke="#c040a0" stroke-width="0.6" opacity="0.32"/>
+        <!-- border -->
+        <rect x="93" y="138" width="84" height="50" rx="5" fill="none" stroke="#c040a0" stroke-width="1.2"/>
+        <!-- active working edge at top -->
+        <rect x="93" y="134" width="84" height="7" rx="3" fill="#f0a8cc" opacity="0.65"/>
+        <!-- live stitch loop -->
+        <ellipse cx="135" cy="135" rx="5" ry="3.5" fill="none" stroke="#e86fad" stroke-width="2.1" opacity="0.88"/>
+      </g>
+
+      <!-- ══ YARN STRAND (ball → hook throat) ══════════════════════ -->
+      <path class="yarn-strand-live"
+        d="M 62 140 C 88 126 112 118 135 116"
+        stroke="#e86fad" stroke-width="2.3" stroke-linecap="round"/>
+
+      <!-- ══ HOOK + HAND (animated as one group) ═══════════════════ -->
+      <!--
+        Hook axis: tip (133,118) → handle end (237,79)
+        dx=104, dy=-39  →  length≈111  →  unit=(0.937,-0.351)
+        Perp CCW (throat side): (-0.351,-0.937)  [upper-left]
+        Perp CW  (back  side):  ( 0.351, 0.937)  [lower-right]
+
+        Key axis distances:
+          0  px → tip      (133,118)
+          8  px → throat end / shaft start (140.5,115.2)
+          58 px → shaft end / handle start (187.7,97.6)
+         111 px → handle end (237,79)
+
+        Shaft half-width 2px, handle half-width 5px
+      -->
+      <g class="hook-hand-group">
+
+        <!-- ── HOOK HANDLE (teal, mostly hidden inside palm) ──── -->
+        <!--
+          handle-start CCW: (187.7-1.755, 97.6-4.685)=(185.9,92.9)
+          handle-start CW:  (187.7+1.755, 97.6+4.685)=(189.5,102.3)
+          handle-end CCW:   (237-1.755, 79-4.685)=(235.2,74.3)
+          handle-end CW:    (237+1.755, 79+4.685)=(238.8,83.7)
+        -->
+        <path d="M 185.9 92.9 L 234.5 74.5
+                 C 237 73.5 239 76 239 79
+                 C 239 82 237 84 234.5 83.5
+                 L 189.5 102.3 Z"
+              fill="url(#handleG)"/>
+        <!-- handle top-edge highlight -->
+        <line x1="187" y1="93.5" x2="235" y2="75" stroke="rgba(255,255,255,0.42)" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- ergonomic grip rings -->
+        <line x1="197" y1="89" x2="194" y2="105" stroke="rgba(10,80,140,0.25)" stroke-width="1.3"/>
+        <line x1="205" y1="87" x2="202" y2="102" stroke="rgba(10,80,140,0.20)" stroke-width="1.3"/>
+        <line x1="213" y1="85" x2="210" y2="100" stroke="rgba(10,80,140,0.18)" stroke-width="1.3"/>
+        <!-- collar between shaft and handle -->
+        <ellipse cx="188.6" cy="97.6" rx="2.2" ry="4.4" fill="#b8b8b8" transform="rotate(-20.5 188.6 97.6)"/>
+
+        <!-- ── HOOK SHAFT + THROAT/TIP (silver metal) ─────────── -->
+        <!--
+          Shaft:
+            top (CCW) at 8px:  (139.3,112.7)   top at 58px: (186.7,94.1)
+            bot (CW)  at 8px:  (141.7,118.1)   bot at 58px: (188.7,101.3) -- but merges into handle
+        -->
+        <!-- Main shaft body -->
+        <path d="M 139.3 112.7 L 186.7 94.1 L 188.7 101.1 L 141.7 118.1 Z"
+              fill="url(#metalG)"/>
+        <!-- Shaft highlight (top edge) -->
+        <line x1="140" y1="114.5" x2="187" y2="96"
+              stroke="rgba(255,255,255,0.6)" stroke-width="1" stroke-linecap="round"/>
+
+        <!-- Hook throat + tip  — the real hook curve -->
+        <!--
+          From shaft top-corner (8px): (139.3,112.7)
+          Curve up-left toward tip top: (136,110), (133,111), (131,113)
+          Around tip: (129,115), (128,118), (130,121)
+          Back to shaft bot-corner (8px): (133,122), (137,120), (141.7,118.1)
+          The deepest throat point ≈ (128,118) — yarn catches here
+        -->
+        <path d="
+          M 139.3 112.7
+          C 136 110 132.5 110.5 130.5 113
+          C 128.5 115 128 118 130 121
+          C 131.5 123 134.5 122.5 137 120
+          C 139 118.5 140.5 117.5 141.7 118.1
+          Z
+        " fill="url(#metalG)"/>
+        <!-- Throat highlight (top of hook curve) -->
+        <path d="M 138 113 C 134.5 112 131.5 113.5 129.5 116.5"
+              stroke="rgba(255,255,255,0.55)" stroke-width="0.9" fill="none" stroke-linecap="round"/>
+        <!-- Throat shadow (concave inner curve — shows depth) -->
+        <path d="M 133 114.5 C 130.5 117 130.5 120 132.5 121.5"
+              stroke="rgba(80,80,80,0.28)" stroke-width="1" fill="none" stroke-linecap="round"/>
+        <!-- Tip glint -->
+        <circle cx="130" cy="119" r="1.3" fill="rgba(255,255,255,0.45)"/>
+
+        <!-- ══ HAND ════════════════════════════════════════════════
+             Right hand, pencil grip, dorsal view (slightly from above).
+             Fingers fan from knuckle arch (y≈85-92) toward upper-right.
+             Wrist enters from right side (~x=250).
+             Render order: palm → pinky → ring → middle → thumb → index
+             The hook shaft extends LEFT beyond the fingers (visible near tip).
+        ═══════════════════════════════════════════════════════════ -->
+
+        <!-- PALM / HAND DORSUM -->
+        <path d="
+          M 208 91
+          C 217 86 226 84 235 86
+          C 242 88 249 95 251 107
+          C 253 119 250 130 243 134
+          C 236 138 225 136 217 132
+          C 209 128 205 119 206 110
+          C 207 101 208 93 208 91 Z
+        " fill="url(#skB)"/>
+        <!-- knuckle arch bump hint -->
+        <path d="M 210 90 C 219 86 228 85 236 87"
+              stroke="rgba(180,110,60,0.22)" stroke-width="1.5" fill="none"/>
+
+        <!-- PINKY finger -->
+        <path d="
+          M 235 86
+          C 232 80 229 79 227 82
+          C 225 85 225 93 227 100
+          C 229 107 232 111 234 110
+          C 237 109 238 104 236 98
+          C 234 92 235 88 235 86 Z
+        " fill="url(#skA)"/>
+        <!-- pinky nail hint -->
+        <path d="M 227.5 84 C 229 81 232 81 234 84"
+              stroke="rgba(200,155,110,0.40)" stroke-width="0.8" fill="none"/>
+
+        <!-- RING finger -->
+        <path d="
+          M 226 84
+          C 223 78 220 77 218 80
+          C 216 83 216 91 218 99
+          C 220 107 223 112 226 112
+          C 229 112 230 107 229 99
+          C 228 91 227 86 226 84 Z
+        " fill="url(#skA)"/>
+        <!-- ring nail hint -->
+        <path d="M 218.5 82 C 220 79 224 79 226 82"
+              stroke="rgba(200,155,110,0.38)" stroke-width="0.8" fill="none"/>
+
+        <!-- MIDDLE finger -->
+        <path d="
+          M 217 85
+          C 213 79 210 78 208 81
+          C 206 84 206 93 208 102
+          C 210 111 213 116 216 116
+          C 219 116 220 111 219 102
+          C 218 93 218 87 217 85 Z
+        " fill="url(#skC)"/>
+        <!-- middle nail hint -->
+        <path d="M 209 83 C 211 80 215 80 217 83"
+              stroke="rgba(200,155,110,0.38)" stroke-width="0.8" fill="none"/>
+
+        <!-- THUMB (radial side, pressing up from under the shaft) -->
+        <path d="
+          M 217 132
+          C 210 133 201 130 195 125
+          C 189 120 187 112 190 107
+          C 193 102 198 103 201 108
+          C 204 113 205 120 208 126
+          C 211 130 215 132 217 132 Z
+        " fill="url(#skB)"/>
+        <!-- thumb tip pad -->
+        <path d="
+          M 190 108
+          C 187 105 185 108 186 112
+          C 187 116 191 118 194 116
+          C 197 114 197 109 195 106
+          C 193 104 191 105 190 108 Z
+        " fill="url(#skC)"/>
+        <!-- thumb nail -->
+        <path d="M 188 108 C 190 105 194 105 195 108"
+              stroke="rgba(200,155,110,0.42)" stroke-width="0.9" fill="none"/>
+
+        <!-- INDEX finger (bent over shaft — frontmost element) -->
+        <path d="
+          M 208 91
+          C 203 85 199 83 197 86
+          C 195 89 195 98 197 107
+          C 199 116 202 121 205 121
+          C 208 121 210 116 210 107
+          C 210 98 209 93 208 91 Z
+        " fill="url(#skC)"/>
+        <!-- index finger crease at PIP joint -->
+        <path d="M 196.5 99 C 199 97 203 97 205.5 99"
+              stroke="rgba(180,110,60,0.20)" stroke-width="0.8" fill="none"/>
+        <path d="M 197 108 C 199.5 106 203 106 205.5 108"
+              stroke="rgba(180,110,60,0.18)" stroke-width="0.7" fill="none"/>
+        <!-- index nail (distal tip area) -->
+        <path d="M 197.5 88 C 200 85 205 85 207 88"
+              stroke="rgba(200,155,110,0.45)" stroke-width="0.9" fill="none"/>
+        <!-- index knuckle sheen -->
+        <ellipse cx="200" cy="90" rx="4" ry="2.5" fill="rgba(255,230,195,0.38)" transform="rotate(-22 200 90)"/>
+
+      </g><!-- end hook-hand-group -->
+    </svg>
+  </div>
+  <div class="yarn-label yarn-dots">Creating Pattern</div>
+  <div class="yarn-sublabel">This may take a moment ✨</div>
+  <button class="yarn-stop-btn" id="yarn-stop-btn">✕ Stop</button>
+</div>
+
+<!-- Conversion done popup -->
+<div class="done-overlay" id="done-overlay">
+  <div class="done-popup">
+    <div class="done-icon">🧶</div>
+    <h3>Pattern Ready!</h3>
+    <p id="done-msg">Your crochet chart has been converted. Scroll down to see your written pattern.</p>
+    <button class="done-ok-btn" id="done-ok-btn">OK, let's see it!</button>
+  </div>
+</div>
+
+<!-- Guest save prompt modal -->
+<div class="guest-modal-overlay" id="guest-modal-overlay">
+  <div class="guest-modal">
+    <div class="guest-modal-icon">🧶</div>
+    <h3>Save your pattern?</h3>
+    <p>Create a free account to save your conversions and build your personal pattern library — accessible anytime.</p>
+    <div class="guest-modal-btns">
+      <button class="guest-modal-primary" id="guest-modal-register">Create Free Account</button>
+      <button class="guest-modal-secondary" id="guest-modal-login">Sign In</button>
+      <button class="guest-modal-dismiss" id="guest-modal-dismiss">Maybe later</button>
+    </div>
+  </div>
+</div>
+
+<!-- Share sheet -->
+<div class="share-overlay" id="share-overlay">
+  <div class="share-sheet">
+    <h4>Share This Pattern</h4>
+    <div class="share-options">
+      <button class="share-option" id="share-native" style="display:none">
+        <span class="share-icon">📤</span>Share
+      </button>
+      <a class="share-option" id="share-email" href="#">
+        <span class="share-icon">📧</span>Email
+      </a>
+      <a class="share-option" id="share-whatsapp" href="#" target="_blank" rel="noopener">
+        <span class="share-icon">💬</span>WhatsApp
+      </a>
+      <a class="share-option" id="share-sms" href="#">
+        <span class="share-icon">📱</span>SMS
+      </a>
+      <button class="share-option" id="share-copy-text">
+        <span class="share-icon">📋</span>Copy Text
+      </button>
+      <button class="share-option" id="share-dl-pattern">
+        <span class="share-icon">⬇️</span>Download .txt
+      </button>
+      <button class="share-option" id="share-dl-image">
+        <span class="share-icon">🖼️</span>Download Image
+      </button>
+    </div>
+    <button class="share-cancel" id="share-cancel">Cancel</button>
+  </div>
 </div>
 
 <!-- Pattern detail modal -->
@@ -381,86 +929,300 @@
     <img class="modal-img" id="modal-img" src="" alt="Chart" />
     <div class="modal-pattern" id="modal-pattern"></div>
     <div class="modal-footer">
+      <button class="modal-copy-btn" id="modal-share-btn">↗ Share</button>
       <button class="modal-copy-btn" id="modal-copy-btn">Copy Pattern</button>
     </div>
   </div>
 </div>
 
 <script>
-  // ── IndexedDB ──
-  const DB_NAME = "crochetPatterns";
-  const STORE = "patterns";
-  let db;
-
-  function openDB() {
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, 1);
-      req.onupgradeneeded = (e) => {
-        const d = e.target.result;
-        if (!d.objectStoreNames.contains(STORE)) {
-          d.createObjectStore(STORE, { keyPath: "id", autoIncrement: true });
-        }
-      };
-      req.onsuccess = () => { db = req.result; resolve(db); };
-      req.onerror = () => reject(req.error);
+  // ── Woobles inspiration strip ────────────────────────────────────
+  const WOOBLES_IMAGES = [
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/products/pierre_straight_40851ef3-0c8a-4f01-a3eb-1a55ef7c802a.jpg?v=1762443067", alt: "Pierre the Penguin" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11TU-FW-PDP-Blue-WEB_1.jpg?v=1762450502", alt: "Turtle" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/SamTheSlothRetouched.jpg?v=1733407663", alt: "Sam the Sloth" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11PD-BaobaoThePanda-FW-YGP11-WEB.jpg?v=1740076192", alt: "Baobao the Panda" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11JF-Jellyfish-web_7f7423f3-290c-4eb8-8d99-6b5d4ff3616d.jpg?v=1762455926", alt: "Jerry the Jellyfish" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/products/miffy.jpg?v=1762453753", alt: "Miffy" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/33GL-GudetamaSunnySideUp-FW-YOT2-WEB.jpg?v=1747243266", alt: "Gudetama" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/products/220301-Woobles9255_2.jpg?v=1762446331", alt: "Dino" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/products/felix_straight_4e8e8742-f781-42e1-b67e-66697b7eb179.jpg?v=1762443228", alt: "Felix the Fox" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/products/11NW-CA-3-web.jpg?v=1762450130", alt: "Narwhal" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/products/kiki_straight_ab4ae105-4d87-4c9e-866a-ea411377d6fb.jpg?v=1762443079", alt: "Chick" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/99TLI-FW-PDP-Teal-WEB.jpg?v=1762454857", alt: "Lil Lion" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/products/jojo_straight_b813e5ff-df03-4c3f-a096-e61b54956d66.jpg?v=1762443069", alt: "Jojo the Bunny" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/93HDW-Hedwig-FW-RWHue-RET_2_24d61449-c8c8-4fff-bd7f-2b32684b689f.jpg?v=1699021625", alt: "Hedwig" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/93SCT-BeagleScoutAccesory-YHUE-1b-RET_1.jpg?v=1697115963", alt: "Snoopy Beagle Scout" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/93ACE-FlyingAceAccesory-CT4-1b-RET_1.jpg?v=1697116443", alt: "Snoopy Flying Ace" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/33BL-Blossom-FW-RCT4-WEB1_c3005d3b-f091-47e5-b380-e291fcc24958.jpg?v=1713298770", alt: "Blossom" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/33BB-Bubbles-FW-CT4-WEB1_b5f1df35-4d71-44ea-a5ef-29deb4baf6d4.jpg?v=1713298729", alt: "Bubbles" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/33BC-Buttercup-FW-YGP11-WEB1_34bfe702-37a5-4608-9bc6-b8a0508030b4.jpg?v=1713298753", alt: "Buttercup" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11SS-SamTheSloth-Hook-YOT1-WEB.jpg?v=1733507612", alt: "Sloth with hook" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11JF-JerryTheJellyfish-Flatlay-CT4-RET.jpg?v=1742483923", alt: "Jellyfish flatlay" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/99TDO-FW-PDP-Yellow-WEB.jpg?v=1762454856", alt: "Wee Rex" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/99TFO-FW-PDP-Blue-WEB.jpg?v=1762454856", alt: "Wee Fox" },
+    { src: "https://cdn.shopify.com/s/files/1/0400/0904/0038/files/F11BN-FingerloopJojo-WoobleWithPouch-RVT3-WEB.jpg?v=1763561335", alt: "Fingerloop Jojo" },
+  ];
+  (function buildStrip() {
+    const track = document.getElementById("woobles-track");
+    if (!track) return;
+    // Double the list for seamless infinite loop
+    [...WOOBLES_IMAGES, ...WOOBLES_IMAGES].forEach(({ src, alt }) => {
+      const img = document.createElement("img");
+      img.src = src; img.alt = alt; img.title = alt;
+      img.loading = "lazy";
+      track.appendChild(img);
     });
+  })();
+
+  let token = localStorage.getItem("cc_token");
+  let userEmail = localStorage.getItem("cc_email");
+  let isGuest = false;
+
+  function authHeaders() {
+    return { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" };
   }
 
-  function dbSave(record) {
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, "readwrite");
-      const req = tx.objectStore(STORE).add(record);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
+  function showApp() {
+    document.getElementById("auth-screen").classList.remove("visible");
+    document.getElementById("app").style.display = "block";
+    const emailEl = document.getElementById("user-email-display");
+    const signoutBtn = document.getElementById("signout-btn");
+    const libraryTab = document.getElementById("tab-library");
+    if (isGuest) {
+      emailEl.textContent = "Guest";
+      signoutBtn.textContent = "Sign in";
+      libraryTab.style.display = "none";
+    } else {
+      emailEl.textContent = userEmail;
+      signoutBtn.textContent = "Sign out";
+      libraryTab.style.display = "";
+      loadBadge();
+    }
   }
 
-  function dbGetAll() {
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, "readonly");
-      const req = tx.objectStore(STORE).getAll();
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
+  function showAuth() {
+    document.getElementById("auth-screen").classList.add("visible");
+    document.getElementById("app").style.display = "none";
+    isGuest = false;
   }
 
-  function dbDelete(id) {
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, "readwrite");
-      const req = tx.objectStore(STORE).delete(id);
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
-    });
+  function logout() {
+    localStorage.removeItem("cc_token");
+    localStorage.removeItem("cc_email");
+    token = null; userEmail = null; isGuest = false;
+    showAuth();
   }
 
-  // Make a small thumbnail from a File using canvas
-  function makeThumbnail(file, maxSize = 400) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(url);
-        resolve(canvas.toDataURL("image/jpeg", 0.82));
-      };
-      img.src = url;
-    });
+  document.getElementById("signout-btn").addEventListener("click", logout);
+
+  document.getElementById("guest-btn").addEventListener("click", () => {
+    isGuest = true;
+    showApp();
+  });
+
+  if (token) showApp(); else showAuth();
+
+  // Auth form
+  let authMode = "login";
+
+  function switchAuthTab(mode) {
+    authMode = mode;
+    document.getElementById("tab-login").classList.toggle("active", mode === "login");
+    document.getElementById("tab-register").classList.toggle("active", mode === "register");
+    document.getElementById("auth-submit").textContent = mode === "login" ? "Sign In" : "Create Account";
+    document.getElementById("auth-error").classList.remove("visible");
+    document.getElementById("pw-requirements").style.display = mode === "register" ? "block" : "none";
+    updatePwRequirements(document.getElementById("auth-password").value);
   }
 
-  // Read a File as a full-res data URL for the modal
-  function fileToDataUrl(file) {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.readAsDataURL(file);
-    });
+  function updatePwRequirements(pw) {
+    const checks = {
+      "req-length":  pw.length >= 8,
+      "req-upper":   /[A-Z]/.test(pw),
+      "req-lower":   /[a-z]/.test(pw),
+      "req-number":  /[0-9]/.test(pw),
+      "req-special": /[^A-Za-z0-9]/.test(pw),
+    };
+    const labels = {
+      "req-length":  "At least 8 characters",
+      "req-upper":   "One uppercase letter",
+      "req-lower":   "One lowercase letter",
+      "req-number":  "One number",
+      "req-special": "One special character (!@#$% etc.)",
+    };
+    for (const [id, met] of Object.entries(checks)) {
+      const el = document.getElementById(id);
+      el.textContent = (met ? "✓ " : "✗ ") + labels[id];
+      el.classList.toggle("met", met);
+    }
   }
 
-  // ── Tabs ──
+  document.getElementById("auth-password").addEventListener("input", (e) => {
+    if (authMode === "register") updatePwRequirements(e.target.value);
+  });
+
+  // Show/hide password toggles
+  document.querySelectorAll(".pw-toggle").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const input = document.getElementById(btn.dataset.target);
+      const showing = input.type === "text";
+      input.type = showing ? "password" : "text";
+      btn.textContent = showing ? "👁" : "🙈";
+    });
+  });
+
+  document.getElementById("auth-submit").addEventListener("click", async () => {
+    const email = document.getElementById("auth-email").value.trim();
+    const password = document.getElementById("auth-password").value;
+    const errEl = document.getElementById("auth-error");
+    const btn = document.getElementById("auth-submit");
+    errEl.classList.remove("visible");
+    btn.disabled = true;
+    btn.textContent = "Please wait…";
+    try {
+      const res = await fetch(`/api/auth/${authMode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { errEl.textContent = data.error; errEl.classList.add("visible"); return; }
+      token = data.token; userEmail = data.email;
+      localStorage.setItem("cc_token", token);
+      localStorage.setItem("cc_email", userEmail);
+      showApp();
+    } catch {
+      errEl.textContent = "Network error — is the server running?";
+      errEl.classList.add("visible");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = authMode === "login" ? "Sign In" : "Create Account";
+    }
+  });
+
+  ["auth-email", "auth-password"].forEach(id => {
+    document.getElementById(id).addEventListener("keydown", e => {
+      if (e.key === "Enter") document.getElementById("auth-submit").click();
+    });
+  });
+
+  // ── Forgot / Reset password ──────────────────────────────────────
+  const mainAuthParts = ["auth-tabs", "auth-email", "auth-password", "forgot-link", "auth-submit", "auth-divider-wrap", "guest-btn"].map(id => document.getElementById(id)).filter(Boolean);
+
+  function showForgotPanel() {
+    document.querySelector(".auth-tabs").style.display = "none";
+    document.getElementById("auth-email").closest(".auth-field").style.display = "none";
+    document.getElementById("auth-password").closest(".auth-field").style.display = "none";
+    document.getElementById("forgot-link").style.display = "none";
+    document.getElementById("auth-submit").style.display = "none";
+    document.querySelector(".auth-divider").style.display = "none";
+    document.getElementById("guest-btn").style.display = "none";
+    document.querySelector(".guest-note").style.display = "none";
+    document.getElementById("auth-error").classList.remove("visible");
+    document.getElementById("forgot-panel").style.display = "block";
+    document.getElementById("forgot-email").focus();
+  }
+
+  function hideForgotPanel() {
+    document.querySelector(".auth-tabs").style.display = "";
+    document.getElementById("auth-email").closest(".auth-field").style.display = "";
+    document.getElementById("auth-password").closest(".auth-field").style.display = "";
+    document.getElementById("forgot-link").style.display = "";
+    document.getElementById("auth-submit").style.display = "";
+    document.querySelector(".auth-divider").style.display = "";
+    document.getElementById("guest-btn").style.display = "";
+    document.querySelector(".guest-note").style.display = "";
+    document.getElementById("forgot-panel").style.display = "none";
+    document.getElementById("forgot-success").classList.remove("visible");
+    document.getElementById("forgot-error").classList.remove("visible");
+  }
+
+  document.getElementById("forgot-link").addEventListener("click", showForgotPanel);
+  document.getElementById("forgot-back").addEventListener("click", hideForgotPanel);
+
+  document.getElementById("forgot-submit").addEventListener("click", async () => {
+    const email = document.getElementById("forgot-email").value.trim();
+    const errEl = document.getElementById("forgot-error");
+    const okEl = document.getElementById("forgot-success");
+    const btn = document.getElementById("forgot-submit");
+    errEl.classList.remove("visible"); okEl.classList.remove("visible");
+    if (!email) { errEl.textContent = "Please enter your email."; errEl.classList.add("visible"); return; }
+    btn.disabled = true; btn.textContent = "Sending…";
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.resetLink) {
+        // Dev mode: no email configured, show link directly
+        okEl.innerHTML = `Reset link (email not configured):<br><a href="${data.resetLink}" style="color:#15803d;word-break:break-all">${data.resetLink}</a>`;
+      } else {
+        okEl.textContent = "Check your email for a reset link. It expires in 1 hour.";
+      }
+      okEl.classList.add("visible");
+      btn.textContent = "Sent!";
+    } catch {
+      errEl.textContent = "Network error — try again."; errEl.classList.add("visible");
+      btn.disabled = false; btn.textContent = "Send Reset Link";
+    }
+  });
+
+  document.getElementById("forgot-email").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("forgot-submit").click();
+  });
+
+  // Show reset panel if ?reset=TOKEN is in URL
+  const resetToken = new URLSearchParams(window.location.search).get("reset");
+  if (resetToken) {
+    showAuth();
+    document.querySelector(".auth-tabs").style.display = "none";
+    document.getElementById("auth-email").closest(".auth-field").style.display = "none";
+    document.getElementById("auth-password").closest(".auth-field").style.display = "none";
+    document.getElementById("forgot-link").style.display = "none";
+    document.getElementById("auth-submit").style.display = "none";
+    document.querySelector(".auth-divider").style.display = "none";
+    document.getElementById("guest-btn").style.display = "none";
+    document.querySelector(".guest-note").style.display = "none";
+    document.getElementById("reset-panel").style.display = "block";
+  }
+
+  document.getElementById("reset-submit").addEventListener("click", async () => {
+    const password = document.getElementById("reset-password").value;
+    const confirm = document.getElementById("reset-confirm").value;
+    const errEl = document.getElementById("reset-error");
+    const btn = document.getElementById("reset-submit");
+    errEl.classList.remove("visible");
+    if (password.length < 6) { errEl.textContent = "Password must be at least 6 characters."; errEl.classList.add("visible"); return; }
+    if (password !== confirm) { errEl.textContent = "Passwords don't match."; errEl.classList.add("visible"); return; }
+    btn.disabled = true; btn.textContent = "Saving…";
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: resetToken, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { errEl.textContent = data.error; errEl.classList.add("visible"); btn.disabled = false; btn.textContent = "Set New Password"; return; }
+      // Auto sign in
+      token = data.token; userEmail = data.email;
+      localStorage.setItem("cc_token", token);
+      localStorage.setItem("cc_email", userEmail);
+      history.replaceState({}, "", "/");
+      showApp();
+    } catch {
+      errEl.textContent = "Network error — try again."; errEl.classList.add("visible");
+      btn.disabled = false; btn.textContent = "Set New Password";
+    }
+  });
+
+  ["reset-password", "reset-confirm"].forEach(id => {
+    document.getElementById(id).addEventListener("keydown", e => {
+      if (e.key === "Enter") document.getElementById("reset-submit").click();
+    });
+  });
+
+  // Tabs
   function showTab(tab) {
     document.getElementById("convert-view").style.display = tab === "convert" ? "block" : "none";
     document.getElementById("library-view").style.display = tab === "library" ? "block" : "none";
@@ -469,57 +1231,75 @@
     if (tab === "library") renderLibrary();
   }
 
-  // ── Library ──
+  // Library
+  async function loadBadge() {
+    try {
+      const res = await fetch("/api/patterns", { headers: authHeaders() });
+      if (res.status === 401) { logout(); return; }
+      setBadge((await res.json()).length);
+    } catch {}
+  }
+
+  function setBadge(n) {
+    const b = document.getElementById("count-badge");
+    b.textContent = n;
+    b.style.display = n === 0 ? "none" : "inline-block";
+  }
+
   async function renderLibrary() {
-    const all = await dbGetAll();
     const grid = document.getElementById("patterns-grid");
     const empty = document.getElementById("library-empty");
-    updateBadge(all.length);
-
-    if (all.length === 0) {
-      empty.style.display = "block";
-      grid.style.display = "none";
-      return;
-    }
-    empty.style.display = "none";
-    grid.style.display = "grid";
-
-    grid.innerHTML = "";
-    [...all].reverse().forEach((rec) => {
-      const card = document.createElement("div");
-      card.className = "pattern-card";
-      card.innerHTML = `
-        <img class="pattern-card-img" src="${rec.thumbnail}" alt="Chart" />
-        <div class="pattern-card-body">
-          <div class="pattern-card-date">${formatDate(rec.createdAt)}</div>
-          <div class="pattern-card-preview">${escapeHtml(rec.pattern)}</div>
-        </div>
-        <div class="pattern-card-footer">
-          <button class="delete-btn" data-id="${rec.id}">Delete</button>
-        </div>`;
-      card.querySelector(".pattern-card-img").addEventListener("click", () => openModal(rec));
-      card.querySelector(".pattern-card-body").addEventListener("click", () => openModal(rec));
-      card.querySelector(".delete-btn").addEventListener("click", async (e) => {
-        e.stopPropagation();
-        await dbDelete(rec.id);
-        renderLibrary();
+    grid.innerHTML = '<p style="color:#c485a8;font-style:italic;padding:1rem 0">Loading…</p>';
+    grid.style.display = "block"; empty.style.display = "none";
+    try {
+      const res = await fetch("/api/patterns", { headers: authHeaders() });
+      if (res.status === 401) { logout(); return; }
+      const patterns = await res.json();
+      setBadge(patterns.length);
+      if (patterns.length === 0) { empty.style.display = "block"; grid.style.display = "none"; return; }
+      grid.innerHTML = ""; grid.style.display = "grid";
+      patterns.forEach(rec => {
+        const card = document.createElement("div");
+        card.className = "pattern-card";
+        card.innerHTML = `
+          <img class="pattern-card-img" src="${rec.thumbnail || ''}" alt="Chart" />
+          <div class="pattern-card-body">
+            <div class="pattern-card-date">${formatDate(rec.createdAt)}</div>
+            <div class="pattern-card-preview">${escapeHtml(rec.pattern)}</div>
+          </div>
+          <div class="pattern-card-footer">
+            <button class="delete-btn" data-id="${rec.id}">Delete</button>
+          </div>`;
+        card.querySelector(".pattern-card-img").addEventListener("click", () => openModal(rec));
+        card.querySelector(".pattern-card-body").addEventListener("click", () => openModal(rec));
+        card.querySelector(".delete-btn").addEventListener("click", async (e) => {
+          e.stopPropagation();
+          if (!confirm("Delete this saved pattern? This can't be undone.")) return;
+          await fetch(`/api/patterns/${rec.id}`, { method: "DELETE", headers: authHeaders() });
+          renderLibrary();
+        });
+        grid.appendChild(card);
       });
-      grid.appendChild(card);
-    });
+    } catch { grid.innerHTML = '<p style="color:#b91c1c;padding:1rem 0">Failed to load patterns.</p>'; }
   }
 
-  function updateBadge(count) {
-    const badge = document.getElementById("count-badge");
-    badge.textContent = count;
-    badge.style.display = count === 0 ? "none" : "inline-block";
-  }
-
-  // ── Modal ──
+  // Modal
   function openModal(rec) {
+    currentModalRec = rec;
+    currentModalBlob = null;
     document.getElementById("modal-date").textContent = formatDate(rec.createdAt);
-    document.getElementById("modal-img").src = rec.imageDataUrl || rec.thumbnail;
+    document.getElementById("modal-img").src = `/api/patterns/${rec.id}/image`;
+    document.getElementById("modal-img").setAttribute("data-auth", token);
+    loadAuthImage(document.getElementById("modal-img"), `/api/patterns/${rec.id}/image`);
     document.getElementById("modal-pattern").textContent = rec.pattern;
     document.getElementById("modal-overlay").classList.add("open");
+  }
+
+  async function loadAuthImage(imgEl, url) {
+    const res = await fetch(url, { headers: { "Authorization": `Bearer ${token}` } });
+    const blob = await res.blob();
+    currentModalBlob = blob;
+    imgEl.src = URL.createObjectURL(blob);
   }
 
   document.getElementById("modal-close").addEventListener("click", () => {
@@ -532,150 +1312,301 @@
 
   const modalCopyBtn = document.getElementById("modal-copy-btn");
   modalCopyBtn.addEventListener("click", () => {
-    const text = document.getElementById("modal-pattern").textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      modalCopyBtn.textContent = "Copied!";
-      modalCopyBtn.classList.add("copied");
+    navigator.clipboard.writeText(document.getElementById("modal-pattern").textContent).then(() => {
+      modalCopyBtn.textContent = "Copied!"; modalCopyBtn.classList.add("copied");
       setTimeout(() => { modalCopyBtn.textContent = "Copy Pattern"; modalCopyBtn.classList.remove("copied"); }, 2000);
     });
   });
 
-  // ── Converter ──
+  document.getElementById("modal-share-btn").addEventListener("click", () => {
+    openShareSheet(
+      document.getElementById("modal-pattern").textContent,
+      () => currentModalBlob ? new File([currentModalBlob], "crochet-chart.jpg", { type: currentModalBlob.type }) : null
+    );
+  });
+
+  // Share sheet
+  let _sharePattern = "", _shareGetFile = null;
+
+  function openShareSheet(pattern, getFileFn) {
+    _sharePattern = pattern;
+    _shareGetFile = getFileFn;
+    const encoded = encodeURIComponent("Check out this crochet pattern I converted:\n\n" + pattern);
+    document.getElementById("share-email").href = `mailto:?subject=Crochet%20Pattern&body=${encoded}`;
+    document.getElementById("share-whatsapp").href = `https://wa.me/?text=${encoded}`;
+    document.getElementById("share-sms").href = `sms:?body=${encoded}`;
+    // Show native share button only if supported
+    const nativeBtn = document.getElementById("share-native");
+    nativeBtn.style.display = navigator.share ? "flex" : "none";
+    document.getElementById("share-overlay").classList.add("open");
+  }
+
+  document.getElementById("share-cancel").addEventListener("click", () => {
+    document.getElementById("share-overlay").classList.remove("open");
+  });
+  document.getElementById("share-overlay").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("share-overlay"))
+      document.getElementById("share-overlay").classList.remove("open");
+  });
+
+  document.getElementById("share-native").addEventListener("click", async () => {
+    const file = _shareGetFile ? _shareGetFile() : null;
+    try {
+      const shareData = { title: "Crochet Pattern", text: _sharePattern };
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) shareData.files = [file];
+      await navigator.share(shareData);
+      document.getElementById("share-overlay").classList.remove("open");
+    } catch {}
+  });
+
+  document.getElementById("share-copy-text").addEventListener("click", () => {
+    navigator.clipboard.writeText(_sharePattern).then(() => {
+      const btn = document.getElementById("share-copy-text");
+      btn.querySelector(".share-icon").textContent = "✓";
+      btn.childNodes[1].textContent = "Copied!";
+      setTimeout(() => { btn.querySelector(".share-icon").textContent = "📋"; btn.childNodes[1].textContent = "Copy Text"; }, 2000);
+    });
+  });
+
+  document.getElementById("share-dl-pattern").addEventListener("click", () => {
+    const blob = new Blob([_sharePattern], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "crochet-pattern.txt";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  document.getElementById("share-dl-image").addEventListener("click", () => {
+    const file = _shareGetFile ? _shareGetFile() : null;
+    if (!file) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(file);
+    a.download = "crochet-chart.jpg";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // Result page share button
+  document.getElementById("share-btn").addEventListener("click", () => {
+    if (!currentPattern) return;
+    openShareSheet(currentPattern, () => currentFile);
+  });
+
+  // Converter
   const fileInput = document.getElementById("file-input");
   const uploadZone = document.getElementById("upload-zone");
   const previewSection = document.getElementById("preview-section");
   const previewImg = document.getElementById("preview-img");
-  const changeBtn = document.getElementById("change-btn");
   const convertBtn = document.getElementById("convert-btn");
   const resultSection = document.getElementById("result-section");
   const resultBox = document.getElementById("result-box");
   const copyBtn = document.getElementById("copy-btn");
   const saveBtn = document.getElementById("save-btn");
-  const startOverBtn = document.getElementById("start-over-btn");
 
-  let currentFile = null;
-  let currentPattern = "";
+  let currentFile = null, currentPattern = "";
+  let currentModalRec = null, currentModalBlob = null;
 
   uploadZone.addEventListener("dragover", (e) => { e.preventDefault(); uploadZone.classList.add("drag-over"); });
   uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("drag-over"));
   uploadZone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    uploadZone.classList.remove("drag-over");
+    e.preventDefault(); uploadZone.classList.remove("drag-over");
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith("image/")) setFile(file);
   });
-
-  fileInput.addEventListener("change", () => {
-    if (fileInput.files[0]) setFile(fileInput.files[0]);
-  });
-
-  changeBtn.addEventListener("click", () => { fileInput.value = ""; fileInput.click(); });
+  fileInput.addEventListener("change", () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
+  document.getElementById("change-btn").addEventListener("click", () => { fileInput.value = ""; fileInput.click(); });
 
   function setFile(file) {
-    currentFile = file;
-    currentPattern = "";
-    const url = URL.createObjectURL(file);
-    previewImg.src = url;
+    currentFile = file; currentPattern = "";
+    previewImg.src = URL.createObjectURL(file);
     previewSection.style.display = "block";
     uploadZone.style.display = "none";
     resultSection.style.display = "none";
     resultBox.textContent = "";
-    saveBtn.textContent = "💾 Save";
-    saveBtn.classList.remove("saved");
+    saveBtn.textContent = "💾 Save"; saveBtn.classList.remove("saved");
   }
+
+  const yarnOverlay = document.getElementById("yarn-overlay");
+  const doneOverlay = document.getElementById("done-overlay");
+  let convertAbortCtrl = null;
+
+  document.getElementById("done-ok-btn").addEventListener("click", () => {
+    doneOverlay.classList.remove("open");
+    resultBox.scrollTop = 0;
+    resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  document.getElementById("yarn-stop-btn").addEventListener("click", () => {
+    if (convertAbortCtrl) { convertAbortCtrl.abort(); convertAbortCtrl = null; }
+  });
 
   convertBtn.addEventListener("click", async () => {
     if (!currentFile) return;
-
-    convertBtn.disabled = true;
-    convertBtn.textContent = "Converting…";
+    convertBtn.disabled = true; convertBtn.textContent = "Converting…";
     resultSection.style.display = "block";
     resultBox.className = "loading";
-    resultBox.innerHTML = "Reading your chart… <span class='cursor'></span>";
-    currentPattern = "";
-    saveBtn.textContent = "💾 Save";
-    saveBtn.classList.remove("saved");
+    resultBox.innerHTML = "";
+    currentPattern = ""; saveBtn.textContent = "💾 Save"; saveBtn.classList.remove("saved");
+    yarnOverlay.classList.add("active");
 
+    convertAbortCtrl = new AbortController();
+    const { signal } = convertAbortCtrl;
+
+    const resizedBlob = await resizeForUpload(currentFile);
     const formData = new FormData();
-    formData.append("image", currentFile);
-
+    formData.append("image", resizedBlob, currentFile.name);
     try {
-      const resp = await fetch("/api/convert", { method: "POST", body: formData });
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({ error: "Server error" }));
-        showError(err.error); return;
-      }
+      const convertHeaders = {};
+      if (token) convertHeaders["Authorization"] = `Bearer ${token}`;
+      const resp = await fetch("/api/convert", {
+        method: "POST", body: formData, headers: convertHeaders, signal,
+      });
+      if (resp.status === 401) { yarnOverlay.classList.remove("active"); logout(); return; }
+      if (!resp.ok) { yarnOverlay.classList.remove("active"); showError((await resp.json().catch(() => ({}))).error || "Server error"); return; }
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
-      let buffer = "";
-      let started = false;
-
+      let buffer = "", started = false;
+      let textNode = null, cursorEl = null;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop();
+        const lines = buffer.split("\n"); buffer = lines.pop();
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
           try {
             const msg = JSON.parse(line.slice(6));
             if (msg.type === "delta") {
-              if (!started) { resultBox.className = ""; resultBox.innerHTML = ""; started = true; }
+              if (!started) {
+                resultBox.className = "";
+                resultBox.innerHTML = "";
+                textNode = document.createTextNode("");
+                cursorEl = document.createElement("span");
+                cursorEl.className = "cursor";
+                resultBox.appendChild(textNode);
+                resultBox.appendChild(cursorEl);
+                started = true;
+              }
               currentPattern += msg.text;
-              resultBox.innerHTML = escapeHtml(currentPattern) + "<span class='cursor'></span>";
+              textNode.nodeValue = currentPattern;
             } else if (msg.type === "done") {
-              resultBox.innerHTML = escapeHtml(currentPattern);
+              if (cursorEl) cursorEl.remove();
+              yarnOverlay.classList.remove("active");
+              doneOverlay.classList.add("open");
             } else if (msg.type === "error") {
+              yarnOverlay.classList.remove("active");
               showError(msg.message);
             }
           } catch {}
         }
       }
     } catch (err) {
-      showError(err.message);
-    } finally {
-      convertBtn.disabled = false;
-      convertBtn.textContent = "Convert to Written Pattern";
+      yarnOverlay.classList.remove("active");
+      if (err.name !== "AbortError") showError(err.message);
+      else { resultBox.className = ""; resultBox.innerHTML = ""; }
+    }
+    finally {
+      convertAbortCtrl = null;
+      convertBtn.disabled = false; convertBtn.textContent = "Convert to Written Pattern";
     }
   });
 
   copyBtn.addEventListener("click", () => {
     if (!currentPattern) return;
     navigator.clipboard.writeText(currentPattern).then(() => {
-      copyBtn.textContent = "Copied!";
-      copyBtn.classList.add("copied");
+      copyBtn.textContent = "Copied!"; copyBtn.classList.add("copied");
       setTimeout(() => { copyBtn.textContent = "Copy"; copyBtn.classList.remove("copied"); }, 2000);
     });
   });
 
   saveBtn.addEventListener("click", async () => {
     if (!currentFile || !currentPattern) return;
-    const [thumbnail, imageDataUrl] = await Promise.all([
-      makeThumbnail(currentFile),
-      fileToDataUrl(currentFile),
-    ]);
-    await dbSave({ createdAt: Date.now(), thumbnail, imageDataUrl, pattern: currentPattern });
-    saveBtn.textContent = "✓ Saved!";
-    saveBtn.classList.add("saved");
-    const all = await dbGetAll();
-    updateBadge(all.length);
+    if (isGuest) {
+      document.getElementById("guest-modal-overlay").classList.add("open");
+      return;
+    }
+    saveBtn.disabled = true; saveBtn.textContent = "Saving…";
+    try {
+      const [thumbnail, imageDataUrl] = await Promise.all([makeThumbnail(currentFile), fileToDataUrl(currentFile)]);
+      const res = await fetch("/api/patterns", {
+        method: "POST", headers: authHeaders(),
+        body: JSON.stringify({ thumbnail, imageDataUrl, pattern: currentPattern }),
+      });
+      if (res.status === 401) { logout(); return; }
+      if (!res.ok) throw new Error("Save failed");
+      saveBtn.textContent = "✓ Saved!"; saveBtn.classList.add("saved");
+      loadBadge();
+    } catch { saveBtn.textContent = "💾 Save"; saveBtn.disabled = false; }
   });
 
-  startOverBtn.addEventListener("click", () => {
-    currentFile = null;
-    currentPattern = "";
-    fileInput.value = "";
-    previewImg.src = "";
+  document.getElementById("start-over-btn").addEventListener("click", () => {
+    currentFile = null; currentPattern = "";
+    fileInput.value = ""; previewImg.src = "";
     previewSection.style.display = "none";
     resultSection.style.display = "none";
-    resultBox.textContent = "";
-    resultBox.className = "";
+    resultBox.textContent = ""; resultBox.className = "";
     uploadZone.style.display = "block";
-    saveBtn.textContent = "💾 Save";
-    saveBtn.classList.remove("saved");
+    saveBtn.textContent = "💾 Save"; saveBtn.classList.remove("saved");
+    saveBtn.disabled = false;
   });
+
+  // Guest save modal
+  function closeGuestModal() {
+    document.getElementById("guest-modal-overlay").classList.remove("open");
+  }
+  document.getElementById("guest-modal-register").addEventListener("click", () => {
+    closeGuestModal(); switchAuthTab("register"); showAuth();
+  });
+  document.getElementById("guest-modal-login").addEventListener("click", () => {
+    closeGuestModal(); switchAuthTab("login"); showAuth();
+  });
+  document.getElementById("guest-modal-dismiss").addEventListener("click", closeGuestModal);
+  document.getElementById("guest-modal-overlay").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("guest-modal-overlay")) closeGuestModal();
+  });
+
+  // Helpers
+  function resizeForUpload(file, maxDim = 1600) {
+    return new Promise((resolve) => {
+      const img = new Image(), url = URL.createObjectURL(file);
+      img.onload = () => {
+        const scale = Math.min(maxDim / img.width, maxDim / img.height, 1);
+        if (scale === 1) { URL.revokeObjectURL(url); resolve(file); return; }
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.92);
+      };
+      img.src = url;
+    });
+  }
+
+  function makeThumbnail(file, maxSize = 400) {
+    return new Promise((resolve) => {
+      const img = new Image(), url = URL.createObjectURL(file);
+      img.onload = () => {
+        const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width * scale; canvas.height = img.height * scale;
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.src = url;
+    });
+  }
+
+  function fileToDataUrl(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    });
+  }
 
   function showError(msg) {
     resultBox.innerHTML = `<div class='error-msg'>⚠️ ${escapeHtml(msg)}</div>`;
@@ -683,23 +1614,12 @@
   }
 
   function escapeHtml(str) {
-    return str
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
   function formatDate(ts) {
-    return new Date(ts).toLocaleDateString("en-US", {
-      month: "short", day: "numeric", year: "numeric",
-      hour: "numeric", minute: "2-digit"
-    });
+    return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
   }
-
-  // Init
-  openDB().then(async () => {
-    const all = await dbGetAll();
-    updateBadge(all.length);
-  });
 </script>
 </body>
 </html>

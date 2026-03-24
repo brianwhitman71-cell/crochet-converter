@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Crochet Converter</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #fff0f5; color: #3d1a2e; min-height: 100vh; }
+
+    /* Woobles strip */
+    .woobles-strip { overflow: hidden; width: 100%; padding: 0.5rem 0; background: linear-gradient(135deg, #fff0f5, #ffe8f3); border-bottom: 1.5px solid #f5c6e0; position: relative; }
+    .woobles-strip::before, .woobles-strip::after { content: ""; position: absolute; top: 0; bottom: 0; width: 50px; z-index: 2; pointer-events: none; }
+    .woobles-strip::before { left: 0; background: linear-gradient(to right, #fff0f5, transparent); }
+    .woobles-strip::after  { right: 0; background: linear-gradient(to left, #fff0f5, transparent); }
+    .woobles-track { display: flex; gap: 0.6rem; align-items: center; animation: woobleScroll 60s linear infinite; width: max-content; }
+    .woobles-track:hover { animation-play-state: paused; }
+    .woobles-track img { width: 70px; height: 70px; object-fit: contain; border-radius: 10px; background: #fff; border: 1.5px solid #f5c6e0; flex-shrink: 0; transition: transform 0.2s; }
+    .woobles-track img:hover { transform: scale(1.15); }
+    @keyframes woobleScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* Login */
+    #login-screen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .login-box {
+      background: #fff; border: 1.5px solid #f5c6e0; border-radius: 20px; padding: 2.5rem 2rem;
+      width: 100%; max-width: 360px; box-shadow: 0 8px 40px rgba(181,66,122,0.12); text-align: center;
+    }
+    .login-box h1 { font-size: 1.6rem; font-weight: 800; color: #b5427a; margin-bottom: 0.25rem; }
+    .login-box p { color: #c485a8; font-size: 0.85rem; margin-bottom: 1.75rem; }
+    .login-box input {
+      display: block; width: 100%; padding: 0.7rem 0.9rem; border: 1.5px solid #f0a8cc;
+      border-radius: 10px; font-size: 0.95rem; color: #3d1a2e; margin-bottom: 0.75rem; outline: none;
+    }
+    .login-box input:focus { border-color: #e86fad; }
+    .login-box button {
+      display: block; width: 100%; padding: 0.85rem;
+      background: linear-gradient(135deg, #e86fad, #c94f9a);
+      color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer;
+    }
+    .login-box button:hover { opacity: 0.88; }
+    .login-error {
+      background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px;
+      padding: 0.6rem 0.8rem; color: #b91c1c; font-size: 0.82rem; margin-bottom: 0.75rem; display: none;
+    }
+    .login-error.visible { display: block; }
+
+    /* Admin app */
+    #admin-app { display: none; }
+
+    header {
+      background: #fff; border-bottom: 1.5px solid #f5c6e0; padding: 1rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    header h1 { font-size: 1.2rem; font-weight: 800; color: #b5427a; }
+    header h1 span { color: #e86fad; }
+    .logout-btn {
+      padding: 5px 14px; background: #fff; border: 1.5px solid #f0a8cc;
+      color: #b5427a; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+    }
+    .logout-btn:hover { background: #ffe8f3; border-color: #e86fad; }
+
+    .admin-container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* Stats */
+    .stats { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .stat-card {
+      background: #fff; border: 1.5px solid #f5c6e0; border-radius: 14px;
+      padding: 1.25rem 1.75rem; flex: 1; min-width: 160px;
+    }
+    .stat-card .stat-num { font-size: 2.2rem; font-weight: 800; color: #b5427a; line-height: 1; }
+    .stat-card .stat-label { font-size: 0.82rem; color: #c485a8; margin-top: 0.25rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #f5c6e0; }
+    .tab-btn {
+      padding: 0.6rem 1.25rem; border: none; background: none;
+      font-size: 0.95rem; font-weight: 700; color: #c485a8; cursor: pointer;
+      border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+    }
+    .tab-btn:hover { color: #b5427a; }
+    .tab-btn.active { color: #b5427a; border-bottom-color: #e86fad; }
+
+    /* Table */
+    .table-wrap { background: #fff; border: 1.5px solid #f5c6e0; border-radius: 14px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: #fff5f9; }
+    th { padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: #b5427a; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1.5px solid #f5c6e0; }
+    td { padding: 0.85rem 1rem; font-size: 0.875rem; border-bottom: 1px solid #f9e8f2; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fff8fb; }
+    .email-cell { font-weight: 600; color: #3d1a2e; }
+    .date-cell { color: #c485a8; white-space: nowrap; }
+    .count-badge {
+      display: inline-block; background: #f5c6e0; color: #b5427a;
+      border-radius: 99px; font-size: 0.72rem; padding: 2px 9px; font-weight: 800;
+    }
+    .preview-cell { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6b3a55; font-size: 0.82rem; }
+    .del-btn {
+      padding: 4px 12px; background: #fff; border: 1.5px solid #fca5a5;
+      color: #b91c1c; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .del-btn:hover { background: #fef2f2; border-color: #f87171; }
+    .thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; background: #fff5f9; border: 1px solid #f5c6e0; display: block; }
+    .empty-row td { text-align: center; color: #c485a8; font-style: italic; padding: 3rem; }
+    .loading-row td { text-align: center; color: #c485a8; padding: 2rem; }
+
+    /* Pattern modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(61,26,46,0.5);
+      backdrop-filter: blur(4px); z-index: 100; padding: 1.5rem; overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+    .modal { background: #fff; border-radius: 20px; max-width: 720px; width: 100%; margin: auto; overflow: hidden; box-shadow: 0 20px 60px rgba(61,26,46,0.25); }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid #f5c6e0; }
+    .modal-header h3 { font-size: 1rem; font-weight: 800; color: #b5427a; }
+    .modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #c485a8; padding: 2px 6px; border-radius: 6px; }
+    .modal-close:hover { background: #ffe8f3; color: #b5427a; }
+    .modal-img { width: 100%; max-height: 360px; object-fit: contain; background: #fff5f9; display: block; }
+    .modal-pattern { padding: 1.5rem; white-space: pre-wrap; font-family: "Georgia", serif; font-size: 0.9rem; line-height: 1.75; color: #3d1a2e; max-height: 380px; overflow-y: auto; }
+    .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #f5c6e0; display: flex; gap: 0.5rem; justify-content: flex-end; }
+    .modal-copy-btn { padding: 7px 16px; background: #fff; border: 1.5px solid #f0a8cc; color: #b5427a; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .modal-copy-btn:hover { background: #ffe8f3; }
+  </style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>🧶 Admin</h1>
+    <p>Crochet Converter management</p>
+    <div class="login-error" id="login-error"></div>
+    <input type="password" id="admin-password" placeholder="Admin password" />
+    <button id="login-btn">Sign In</button>
+  </div>
+</div>
+
+<!-- Admin app -->
+<div id="admin-app">
+  <header>
+    <h1>🧶 Crochet <span>Admin</span></h1>
+    <button class="logout-btn" id="admin-logout">Sign Out</button>
+  </header>
+
+  <div class="woobles-strip"><div class="woobles-track" id="woobles-track"></div></div>
+
+  <div class="admin-container">
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-users">—</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-patterns">—</div>
+        <div class="stat-label">Saved Patterns</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-users-btn" onclick="showTab('users')">Users</button>
+      <button class="tab-btn" id="tab-patterns-btn" onclick="showTab('patterns')">All Patterns</button>
+    </div>
+
+    <!-- Users table -->
+    <div id="tab-users">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Joined</th>
+              <th>Patterns</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr class="loading-row"><td colspan="4">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Patterns table -->
+    <div id="tab-patterns" style="display:none">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>User</th>
+              <th>Date</th>
+              <th>Pattern Preview</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="patterns-tbody">
+            <tr class="loading-row"><td colspan="5">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pattern detail modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title"></h3>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <img class="modal-img" id="modal-img" src="" alt="Chart" />
+    <div class="modal-pattern" id="modal-pattern"></div>
+    <div class="modal-footer">
+      <button class="modal-copy-btn" id="modal-copy">Copy Pattern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Woobles strip
+  (function() {
+    const imgs = [
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/pierre_straight_40851ef3-0c8a-4f01-a3eb-1a55ef7c802a.jpg?v=1762443067","Pierre the Penguin"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11TU-FW-PDP-Blue-WEB_1.jpg?v=1762450502","Turtle"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/SamTheSlothRetouched.jpg?v=1733407663","Sam the Sloth"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11PD-BaobaoThePanda-FW-YGP11-WEB.jpg?v=1740076192","Baobao the Panda"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11JF-Jellyfish-web_7f7423f3-290c-4eb8-8d99-6b5d4ff3616d.jpg?v=1762455926","Jerry the Jellyfish"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/miffy.jpg?v=1762453753","Miffy"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/33GL-GudetamaSunnySideUp-FW-YOT2-WEB.jpg?v=1747243266","Gudetama"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/220301-Woobles9255_2.jpg?v=1762446331","Dino"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/felix_straight_4e8e8742-f781-42e1-b67e-66697b7eb179.jpg?v=1762443228","Felix the Fox"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/11NW-CA-3-web.jpg?v=1762450130","Narwhal"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/kiki_straight_ab4ae105-4d87-4c9e-866a-ea411377d6fb.jpg?v=1762443079","Chick"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/99TLI-FW-PDP-Teal-WEB.jpg?v=1762454857","Lil Lion"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/jojo_straight_b813e5ff-df03-4c3f-a096-e61b54956d66.jpg?v=1762443069","Jojo the Bunny"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/93HDW-Hedwig-FW-RWHue-RET_2_24d61449-c8c8-4fff-bd7f-2b32684b689f.jpg?v=1699021625","Hedwig"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/93SCT-BeagleScoutAccesory-YHUE-1b-RET_1.jpg?v=1697115963","Snoopy"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/93ACE-FlyingAceAccesory-CT4-1b-RET_1.jpg?v=1697116443","Snoopy Flying Ace"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/33BL-Blossom-FW-RCT4-WEB1_c3005d3b-f091-47e5-b380-e291fcc24958.jpg?v=1713298770","Blossom"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/33BB-Bubbles-FW-CT4-WEB1_b5f1df35-4d71-44ea-a5ef-29deb4baf6d4.jpg?v=1713298729","Bubbles"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/33BC-Buttercup-FW-YGP11-WEB1_34bfe702-37a5-4608-9bc6-b8a0508030b4.jpg?v=1713298753","Buttercup"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11SS-SamTheSloth-Hook-YOT1-WEB.jpg?v=1733507612","Sloth"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11JF-JerryTheJellyfish-Flatlay-CT4-RET.jpg?v=1742483923","Jellyfish"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/99TDO-FW-PDP-Yellow-WEB.jpg?v=1762454856","Wee Rex"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/99TFO-FW-PDP-Blue-WEB.jpg?v=1762454856","Wee Fox"],
+      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/F11BN-FingerloopJojo-WoobleWithPouch-RVT3-WEB.jpg?v=1763561335","Fingerloop Jojo"],
+    ];
+    const track = document.getElementById("woobles-track");
+    [...imgs, ...imgs].forEach(([src, alt]) => {
+      const img = document.createElement("img");
+      img.src = src; img.alt = alt; img.title = alt; img.loading = "lazy";
+      track.appendChild(img);
+    });
+  })();
+
+  let adminToken = sessionStorage.getItem("admin_token");
+
+  function adminHeaders() {
+    return { "Authorization": `Bearer ${adminToken}`, "Content-Type": "application/json" };
+  }
+
+  function formatDate(ts) {
+    return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+
+  function escapeHtml(str) {
+    return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  if (adminToken) showApp(); else showLogin();
+
+  function showLogin() {
+    document.getElementById("login-screen").style.display = "flex";
+    document.getElementById("admin-app").style.display = "none";
+  }
+
+  function showApp() {
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("admin-app").style.display = "block";
+    loadStats();
+    loadUsers();
+  }
+
+  // Login
+  document.getElementById("login-btn").addEventListener("click", async () => {
+    const password = document.getElementById("admin-password").value;
+    const errEl = document.getElementById("login-error");
+    const btn = document.getElementById("login-btn");
+    errEl.classList.remove("visible");
+    btn.disabled = true; btn.textContent = "Signing in…";
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { errEl.textContent = data.error; errEl.classList.add("visible"); return; }
+      adminToken = data.token;
+      sessionStorage.setItem("admin_token", adminToken);
+      showApp();
+    } catch {
+      errEl.textContent = "Network error."; errEl.classList.add("visible");
+    } finally { btn.disabled = false; btn.textContent = "Sign In"; }
+  });
+
+  document.getElementById("admin-password").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("login-btn").click();
+  });
+
+  document.getElementById("admin-logout").addEventListener("click", () => {
+    sessionStorage.removeItem("admin_token");
+    adminToken = null;
+    showLogin();
+  });
+
+  // Stats
+  async function loadStats() {
+    try {
+      const res = await fetch("/api/admin/stats", { headers: adminHeaders() });
+      if (res.status === 401) { sessionStorage.removeItem("admin_token"); showLogin(); return; }
+      const data = await res.json();
+      document.getElementById("stat-users").textContent = data.users;
+      document.getElementById("stat-patterns").textContent = data.patterns;
+    } catch {}
+  }
+
+  // Tabs
+  function showTab(tab) {
+    document.getElementById("tab-users").style.display = tab === "users" ? "block" : "none";
+    document.getElementById("tab-patterns").style.display = tab === "patterns" ? "block" : "none";
+    document.getElementById("tab-users-btn").classList.toggle("active", tab === "users");
+    document.getElementById("tab-patterns-btn").classList.toggle("active", tab === "patterns");
+    if (tab === "patterns") loadPatterns();
+  }
+
+  // Users
+  async function loadUsers() {
+    const tbody = document.getElementById("users-tbody");
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="4">Loading…</td></tr>';
+    try {
+      const res = await fetch("/api/admin/users", { headers: adminHeaders() });
+      if (res.status === 401) { sessionStorage.removeItem("admin_token"); showLogin(); return; }
+      const users = await res.json();
+      if (!users.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="4">No users yet.</td></tr>'; return; }
+      tbody.innerHTML = "";
+      users.forEach(u => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="email-cell">${escapeHtml(u.email)}</td>
+          <td class="date-cell">${formatDate(u.createdAt)}</td>
+          <td><span class="count-badge">${u.patterns}</span></td>
+          <td><button class="del-btn" data-id="${u.id}" data-email="${escapeHtml(u.email)}">Delete User</button></td>`;
+        tr.querySelector(".del-btn").addEventListener("click", async (e) => {
+          const { id, email } = e.currentTarget.dataset;
+          if (!confirm(`Delete user "${email}" and all their saved patterns? This cannot be undone.`)) return;
+          await fetch(`/api/admin/users/${id}`, { method: "DELETE", headers: adminHeaders() });
+          loadUsers(); loadStats();
+        });
+        tbody.appendChild(tr);
+      });
+    } catch { tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Failed to load users.</td></tr>'; }
+  }
+
+  // Patterns
+  async function loadPatterns() {
+    const tbody = document.getElementById("patterns-tbody");
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="5">Loading…</td></tr>';
+    try {
+      const res = await fetch("/api/admin/patterns", { headers: adminHeaders() });
+      if (res.status === 401) { sessionStorage.removeItem("admin_token"); showLogin(); return; }
+      const patterns = await res.json();
+      if (!patterns.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No saved patterns yet.</td></tr>'; return; }
+      tbody.innerHTML = "";
+      patterns.forEach(p => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><img class="thumb" src="${escapeHtml(p.thumbnail || '')}" alt="" /></td>
+          <td class="email-cell">${escapeHtml(p.userEmail)}</td>
+          <td class="date-cell">${formatDate(p.createdAt)}</td>
+          <td class="preview-cell">${escapeHtml(p.pattern)}</td>
+          <td style="display:flex;gap:0.4rem;align-items:center">
+            <button class="modal-copy-btn view-btn" data-id="${p.id}" style="white-space:nowrap">View</button>
+            <button class="del-btn" data-id="${p.id}">Delete</button>
+          </td>`;
+        tr.querySelector(".view-btn").addEventListener("click", () => openModal(p));
+        tr.querySelector(".del-btn").addEventListener("click", async (e) => {
+          if (!confirm("Delete this pattern? This cannot be undone.")) return;
+          await fetch(`/api/admin/patterns/${p.id}`, { method: "DELETE", headers: adminHeaders() });
+          loadPatterns(); loadStats();
+        });
+        tbody.appendChild(tr);
+      });
+    } catch { tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Failed to load patterns.</td></tr>'; }
+  }
+
+  // Modal
+  function openModal(p) {
+    document.getElementById("modal-title").textContent = `${p.userEmail} · ${formatDate(p.createdAt)}`;
+    document.getElementById("modal-pattern").textContent = p.pattern;
+    const img = document.getElementById("modal-img");
+    img.src = "";
+    fetch(`/api/admin/patterns/${p.id}/image`, { headers: adminHeaders() })
+      .then(r => r.blob()).then(blob => { img.src = URL.createObjectURL(blob); }).catch(() => {});
+    document.getElementById("modal-overlay").classList.add("open");
+  }
+
+  document.getElementById("modal-close").addEventListener("click", () => {
+    document.getElementById("modal-overlay").classList.remove("open");
+  });
+  document.getElementById("modal-overlay").addEventListener("click", e => {
+    if (e.target === document.getElementById("modal-overlay"))
+      document.getElementById("modal-overlay").classList.remove("open");
+  });
+  document.getElementById("modal-copy").addEventListener("click", () => {
+    navigator.clipboard.writeText(document.getElementById("modal-pattern").textContent).then(() => {
+      const btn = document.getElementById("modal-copy");
+      btn.textContent = "Copied!"; setTimeout(() => { btn.textContent = "Copy Pattern"; }, 2000);
+    });
+  });
+</script>
+</body>
+</html>
