@@ -9,8 +9,8 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #fdf6f0;
-      color: #2d1f14;
+      background: #fff0f5;
+      color: #3d1a2e;
       min-height: 100vh;
       padding: 2rem 1rem;
     }
@@ -21,33 +21,33 @@
     header h1 {
       font-size: 2.2rem;
       font-weight: 800;
-      color: #7c3f1e;
+      color: #b5427a;
       letter-spacing: -0.02em;
     }
-    header h1 span { color: #c1693a; }
-    header p { color: #9a7060; margin-top: 0.4rem; font-size: 1rem; }
+    header h1 span { color: #e86fad; }
+    header p { color: #c485a8; margin-top: 0.4rem; font-size: 1rem; }
 
     /* Upload area */
     .upload-zone {
-      border: 2.5px dashed #d4a58a;
+      border: 2.5px dashed #f0a8cc;
       border-radius: 16px;
       padding: 3rem 2rem;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s;
-      background: #fff9f5;
+      background: #fff5f9;
       position: relative;
     }
     .upload-zone:hover, .upload-zone.drag-over {
-      border-color: #c1693a;
-      background: #fff3ec;
+      border-color: #e86fad;
+      background: #ffe8f3;
     }
     .upload-zone input[type="file"] {
       position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
     }
     .upload-icon { font-size: 3rem; margin-bottom: 0.75rem; }
-    .upload-zone h2 { font-size: 1.1rem; font-weight: 700; color: #7c3f1e; }
-    .upload-zone p { color: #9a7060; font-size: 0.875rem; margin-top: 0.3rem; }
+    .upload-zone h2 { font-size: 1.1rem; font-weight: 700; color: #b5427a; }
+    .upload-zone p { color: #c485a8; font-size: 0.875rem; margin-top: 0.3rem; }
 
     /* Preview */
     #preview-section { display: none; margin-top: 1.5rem; }
@@ -56,7 +56,7 @@
       border-radius: 12px;
       overflow: hidden;
       background: #fff;
-      border: 1px solid #e8d5c8;
+      border: 1px solid #f5c6e0;
       display: inline-block;
       max-width: 100%;
     }
@@ -79,14 +79,14 @@
     #convert-btn {
       display: block; width: 100%; margin-top: 1.25rem;
       padding: 0.9rem;
-      background: #c1693a;
+      background: linear-gradient(135deg, #e86fad, #c94f9a);
       color: #fff;
       border: none; border-radius: 12px;
       font-size: 1.05rem; font-weight: 700;
-      cursor: pointer; transition: background 0.15s;
+      cursor: pointer; transition: opacity 0.15s;
       letter-spacing: 0.01em;
     }
-    #convert-btn:hover:not(:disabled) { background: #a85530; }
+    #convert-btn:hover:not(:disabled) { opacity: 0.88; }
     #convert-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
     /* Result area */
@@ -95,46 +95,46 @@
       display: flex; align-items: center; justify-content: space-between;
       margin-bottom: 0.75rem;
     }
-    .result-header h3 { font-size: 1rem; font-weight: 700; color: #7c3f1e; }
+    .result-header h3 { font-size: 1rem; font-weight: 700; color: #b5427a; }
     #copy-btn {
       padding: 6px 14px;
-      background: #fff; border: 1.5px solid #d4a58a;
-      color: #7c3f1e; border-radius: 8px;
+      background: #fff; border: 1.5px solid #f0a8cc;
+      color: #b5427a; border-radius: 8px;
       font-size: 0.82rem; font-weight: 600; cursor: pointer;
       transition: all 0.15s;
     }
-    #copy-btn:hover { border-color: #c1693a; background: #fff3ec; }
+    #copy-btn:hover { border-color: #e86fad; background: #ffe8f3; }
     #copy-btn.copied { border-color: #5a9e6f; color: #5a9e6f; background: #f0faf4; }
 
     #start-over-btn {
       display: block; width: 100%; margin-top: 1rem;
       padding: 0.75rem;
-      background: #fff; border: 1.5px solid #d4a58a;
-      color: #7c3f1e; border-radius: 12px;
+      background: #fff; border: 1.5px solid #f0a8cc;
+      color: #b5427a; border-radius: 12px;
       font-size: 0.95rem; font-weight: 700;
       cursor: pointer; transition: all 0.15s;
     }
-    #start-over-btn:hover { border-color: #c1693a; background: #fff3ec; }
+    #start-over-btn:hover { border-color: #e86fad; background: #ffe8f3; }
 
     #result-box {
       background: #fff;
-      border: 1px solid #e8d5c8;
+      border: 1px solid #f5c6e0;
       border-radius: 12px;
       padding: 1.5rem;
       white-space: pre-wrap;
       font-family: "Georgia", serif;
       font-size: 0.95rem;
       line-height: 1.75;
-      color: #2d1f14;
+      color: #3d1a2e;
       min-height: 120px;
     }
-    #result-box.loading { color: #b08070; font-style: italic; }
+    #result-box.loading { color: #c485a8; font-style: italic; }
 
     /* Cursor blink when streaming */
     .cursor {
       display: inline-block;
       width: 2px; height: 1em;
-      background: #c1693a;
+      background: #e86fad;
       vertical-align: text-bottom;
       animation: blink 0.8s step-end infinite;
       margin-left: 1px;
@@ -149,9 +149,9 @@
 
     footer {
       text-align: center; margin-top: 3rem;
-      color: #c4a090; font-size: 0.8rem;
+      color: #d4a0bf; font-size: 0.8rem;
     }
-    footer a { color: #c1693a; text-decoration: none; }
+    footer a { color: #e86fad; text-decoration: none; }
   </style>
 </head>
 <body>
