@@ -1063,11 +1063,26 @@
     showApp();
   });
 
-  // Verify stored token against backend before showing app
+  function clearTokenAndShowAuth() {
+    localStorage.removeItem("cc_token");
+    localStorage.removeItem("cc_email");
+    token = null; userEmail = null;
+    showAuth();
+  }
+
+  // Verify stored token against backend — must return JSON with email field
   if (token) {
     fetch("/api/auth/verify", { headers: { "Authorization": `Bearer ${token}` } })
-      .then(r => { if (r.ok) showApp(); else { localStorage.removeItem("cc_token"); localStorage.removeItem("cc_email"); token = null; userEmail = null; showAuth(); } })
-      .catch(() => { localStorage.removeItem("cc_token"); localStorage.removeItem("cc_email"); token = null; userEmail = null; showAuth(); });
+      .then(async r => {
+        if (!r.ok) { clearTokenAndShowAuth(); return; }
+        const ct = r.headers.get("content-type") || "";
+        if (!ct.includes("json")) { clearTokenAndShowAuth(); return; }
+        const data = await r.json().catch(() => null);
+        if (!data || !data.email) { clearTokenAndShowAuth(); return; }
+        userEmail = data.email;
+        showApp();
+      })
+      .catch(clearTokenAndShowAuth);
   } else {
     showAuth();
   }

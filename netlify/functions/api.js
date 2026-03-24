@@ -357,4 +357,11 @@ app.delete("/api/admin/patterns/:id", requireAdmin, async (req, res) => {
   res.json({ ok: true });
 });
 
+// Global error handler — always return JSON, never HTML
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error("Function error:", err.message);
+  res.status(500).json({ error: "Internal server error" });
+});
+
 module.exports.handler = serverless(app);
