@@ -90,9 +90,12 @@ function validatePassword(password) {
 
 app.use(express.json({ limit: "25mb" }));
 
-// ── Token verify (lightweight — no DB, just JWT check) ───────────
-app.get("/api/auth/verify", requireAuth, (req, res) => {
-  res.json({ email: req.user.email });
+// ── Token verify — checks JWT signature AND user exists in DB ────
+app.get("/api/auth/verify", requireAuth, async (req, res) => {
+  const db = await readDB();
+  const user = db.users.find(u => u.id === req.user.id);
+  if (!user) return res.status(401).json({ error: "User not found" });
+  res.json({ email: user.email });
 });
 
 // ── Auth routes ──────────────────────────────────────────────────

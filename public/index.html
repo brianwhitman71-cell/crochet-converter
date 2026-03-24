@@ -1067,7 +1067,7 @@
   if (token) {
     fetch("/api/auth/verify", { headers: { "Authorization": `Bearer ${token}` } })
       .then(r => { if (r.ok) showApp(); else { localStorage.removeItem("cc_token"); localStorage.removeItem("cc_email"); token = null; userEmail = null; showAuth(); } })
-      .catch(() => showApp()); // network error → assume valid (offline-friendly)
+      .catch(() => { localStorage.removeItem("cc_token"); localStorage.removeItem("cc_email"); token = null; userEmail = null; showAuth(); });
   } else {
     showAuth();
   }
