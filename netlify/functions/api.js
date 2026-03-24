@@ -14,32 +14,36 @@ const client = new Anthropic.default({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const JWT_SECRET = process.env.JWT_SECRET || "crochet-secret-change-in-prod";
 
+// ── Blobs store factory (v1 functions need explicit siteID + token) ─
+function blobStore(name) {
+  return getStore({
+    name,
+    siteID: process.env.NETLIFY_SITE_ID || "d6891d39-b15f-42fb-827d-992377d4c333",
+    token: process.env.NETLIFY_API_TOKEN,
+  });
+}
+
 // ── DB helpers using Netlify Blobs ───────────────────────────────
 async function readDB() {
-  const store = getStore("database");
-  const data = await store.get("db.json", { type: "json" }).catch(() => null);
+  const data = await blobStore("database").get("db.json", { type: "json" }).catch(() => null);
   return data || { users: [], patterns: [] };
 }
 
 async function writeDB(data) {
-  const store = getStore("database");
-  await store.set("db.json", JSON.stringify(data));
+  await blobStore("database").set("db.json", JSON.stringify(data));
 }
 
 // ── Image helpers ────────────────────────────────────────────────
 async function saveImage(patternId, buffer) {
-  const store = getStore("images");
-  await store.set(patternId, buffer, { contentType: "image/jpeg" });
+  await blobStore("images").set(patternId, buffer, { contentType: "image/jpeg" });
 }
 
 async function getImage(patternId) {
-  const store = getStore("images");
-  return store.get(patternId, { type: "arrayBuffer" }).catch(() => null);
+  return blobStore("images").get(patternId, { type: "arrayBuffer" }).catch(() => null);
 }
 
 async function deleteImage(patternId) {
-  const store = getStore("images");
-  await store.delete(patternId).catch(() => null);
+  await blobStore("images").delete(patternId).catch(() => null);
 }
 
 // ── Auth middleware ──────────────────────────────────────────────

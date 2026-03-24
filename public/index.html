@@ -1128,11 +1128,13 @@
 
   // Show/hide password toggles
   document.querySelectorAll(".pw-toggle").forEach(btn => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
       const input = document.getElementById(btn.dataset.target);
-      const showing = input.type === "text";
-      input.type = showing ? "password" : "text";
-      btn.textContent = showing ? "👁" : "🙈";
+      if (!input) return;
+      const isPassword = input.getAttribute("type") === "password";
+      input.setAttribute("type", isPassword ? "text" : "password");
+      btn.textContent = isPassword ? "🙈" : "👁";
     });
   });
 
