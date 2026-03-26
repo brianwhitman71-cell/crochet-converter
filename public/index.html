@@ -1250,7 +1250,9 @@
     try {
       const res = await fetch("/api/patterns", { headers: authHeaders() });
       if (res.status === 401) { logout(); return; }
-      setBadge((await res.json()).length);
+      const patterns = await res.json();
+      cachedPatterns = patterns;
+      setBadge(patterns.length);
     } catch {}
   }
 
@@ -1509,7 +1511,7 @@
     resultBox.innerHTML = "";
     currentPattern = ""; saveBtn.textContent = "💾 Save"; saveBtn.classList.remove("saved");
     yarnOverlay.classList.add("active");
-    startCountdown(25);
+    startCountdown();
 
     convertAbortCtrl = new AbortController();
     const { signal } = convertAbortCtrl;
