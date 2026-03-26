@@ -193,7 +193,7 @@ app.get("/api/patterns", requireAuth, async (req, res) => {
 });
 
 app.post("/api/patterns", requireAuth, async (req, res) => {
-  const { thumbnail, imageDataUrl, pattern } = req.body;
+  const { thumbnail, imageDataUrl, imageHash, pattern } = req.body;
   if (!pattern) return res.status(400).json({ error: "Pattern text required" });
 
   const id = crypto.randomUUID();
@@ -204,7 +204,7 @@ app.post("/api/patterns", requireAuth, async (req, res) => {
   }
 
   const db = await readDB();
-  db.patterns.push({ id, userId: req.user.id, createdAt: Date.now(), thumbnail, pattern });
+  db.patterns.push({ id, userId: req.user.id, createdAt: Date.now(), thumbnail, imageHash, pattern });
   await writeDB(db);
 
   res.json({ id });

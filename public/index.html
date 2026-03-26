@@ -323,6 +323,31 @@
     }
     .share-cancel:hover, .share-cancel:active { background: #f0a8cc; }
 
+    /* Duplicate image modal */
+    .dup-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(61,26,46,0.5);
+      backdrop-filter: blur(4px); z-index: 310; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    .dup-overlay.open { display: flex; }
+    .dup-modal {
+      background: #fff; border-radius: 20px; max-width: 380px; width: 100%;
+      padding: 2rem 1.75rem; box-shadow: 0 20px 60px rgba(61,26,46,0.25); text-align: center;
+    }
+    .dup-modal-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .dup-modal h3 { font-size: 1.1rem; font-weight: 800; color: #b5427a; margin-bottom: 0.5rem; }
+    .dup-modal p { font-size: 0.875rem; color: #c485a8; line-height: 1.55; margin-bottom: 1.5rem; }
+    .dup-modal-btns { display: flex; flex-direction: column; gap: 0.6rem; }
+    .dup-modal-view {
+      padding: 0.8rem; background: linear-gradient(135deg, #e86fad, #c94f9a);
+      color: #fff; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
+    }
+    .dup-modal-view:hover, .dup-modal-view:active { opacity: 0.88; }
+    .dup-modal-continue {
+      padding: 0.8rem; background: #fff; border: 1.5px solid #f0a8cc;
+      color: #b5427a; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.15s;
+    }
+    .dup-modal-continue:hover, .dup-modal-continue:active { border-color: #e86fad; background: #ffe8f3; }
+
     /* Guest save modal */
     .guest-modal-overlay {
       display: none; position: fixed; inset: 0; background: rgba(61,26,46,0.5);
@@ -827,6 +852,19 @@
 </div>
 
 <!-- Guest save prompt modal -->
+<!-- Duplicate image modal -->
+<div class="dup-overlay" id="dup-overlay">
+  <div class="dup-modal">
+    <div class="dup-modal-icon">🔁</div>
+    <h3>Pattern already exists</h3>
+    <p id="dup-modal-msg">This image already has a saved pattern from <strong id="dup-modal-date"></strong>.</p>
+    <div class="dup-modal-btns">
+      <button class="dup-modal-view" id="dup-modal-view">View Saved Pattern</button>
+      <button class="dup-modal-continue" id="dup-modal-continue">Convert Again Anyway</button>
+    </div>
+  </div>
+</div>
+
 <div class="guest-modal-overlay" id="guest-modal-overlay">
   <div class="guest-modal">
     <div class="guest-modal-icon">🧶</div>
@@ -1231,6 +1269,7 @@
       const res = await fetch("/api/patterns", { headers: authHeaders() });
       if (res.status === 401) { logout(); return; }
       const patterns = await res.json();
+      cachedPatterns = patterns;
       setBadge(patterns.length);
       if (patterns.length === 0) { empty.style.display = "block"; grid.style.display = "none"; return; }
       grid.innerHTML = ""; grid.style.display = "grid";
@@ -1382,6 +1421,13 @@
 
   let currentFile = null, currentPattern = "";
   let currentModalRec = null, currentModalBlob = null;
+  let cachedPatterns = [];
+
+  async function hashFile(file) {
+    const buf = await file.arrayBuffer();
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
 
   uploadZone.addEventListener("dragover", (e) => { e.preventDefault(); uploadZone.classList.add("drag-over"); });
   uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("drag-over"));
@@ -1393,7 +1439,7 @@
   fileInput.addEventListener("change", () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
   document.getElementById("change-btn").addEventListener("click", () => { fileInput.value = ""; fileInput.click(); });
 
-  function setFile(file) {
+  async function setFile(file) {
     currentFile = file; currentPattern = "";
     previewImg.src = URL.createObjectURL(file);
     previewSection.style.display = "block";
@@ -1401,6 +1447,22 @@
     resultSection.style.display = "none";
     resultBox.textContent = "";
     saveBtn.textContent = "💾 Save"; saveBtn.classList.remove("saved");
+
+    if (!isGuest && cachedPatterns.length > 0) {
+      const hash = await hashFile(file);
+      const match = cachedPatterns.find(p => p.imageHash === hash);
+      if (match) {
+        document.getElementById("dup-modal-date").textContent = formatDate(match.createdAt);
+        document.getElementById("dup-overlay").classList.add("open");
+        document.getElementById("dup-modal-view").onclick = () => {
+          document.getElementById("dup-overlay").classList.remove("open");
+          openModal(match);
+        };
+        document.getElementById("dup-modal-continue").onclick = () => {
+          document.getElementById("dup-overlay").classList.remove("open");
+        };
+      }
+    }
   }
 
   const yarnOverlay = document.getElementById("yarn-overlay");
@@ -1528,10 +1590,10 @@
     }
     saveBtn.disabled = true; saveBtn.textContent = "Saving…";
     try {
-      const [thumbnail, imageDataUrl] = await Promise.all([makeThumbnail(currentFile), fileToDataUrl(currentFile)]);
+      const [thumbnail, imageDataUrl, imageHash] = await Promise.all([makeThumbnail(currentFile), fileToDataUrl(currentFile), hashFile(currentFile)]);
       const res = await fetch("/api/patterns", {
         method: "POST", headers: authHeaders(),
-        body: JSON.stringify({ thumbnail, imageDataUrl, pattern: currentPattern }),
+        body: JSON.stringify({ thumbnail, imageDataUrl, imageHash, pattern: currentPattern }),
       });
       if (res.status === 401) { logout(); return; }
       if (!res.ok) throw new Error("Save failed");
