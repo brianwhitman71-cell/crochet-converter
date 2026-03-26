@@ -1441,7 +1441,7 @@
   fileInput.addEventListener("change", () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
   document.getElementById("change-btn").addEventListener("click", () => { fileInput.value = ""; fileInput.click(); });
 
-  async function setFile(file) {
+  function setFile(file) {
     currentFile = file; currentPattern = "";
     previewImg.src = URL.createObjectURL(file);
     previewSection.style.display = "block";
@@ -1449,22 +1449,27 @@
     resultSection.style.display = "none";
     resultBox.textContent = "";
     saveBtn.textContent = "💾 Save"; saveBtn.classList.remove("saved");
+  }
 
-    if (!isGuest) {
-      const hash = await hashFile(file);
-      const match = cachedPatterns.find(p => p.imageHash === hash);
-      if (match) {
-        document.getElementById("dup-modal-date").textContent = formatDate(match.createdAt);
-        document.getElementById("dup-overlay").classList.add("open");
-        document.getElementById("dup-modal-view").onclick = () => {
-          document.getElementById("dup-overlay").classList.remove("open");
-          openModal(match);
-        };
-        document.getElementById("dup-modal-continue").onclick = () => {
-          document.getElementById("dup-overlay").classList.remove("open");
-        };
-      }
-    }
+  // Returns true if OK to proceed, false if user chose to view saved pattern instead.
+  async function checkDuplicate() {
+    if (isGuest || !currentFile) return true;
+    const hash = await hashFile(currentFile);
+    const match = cachedPatterns.find(p => p.imageHash === hash);
+    if (!match) return true;
+    return new Promise(resolve => {
+      document.getElementById("dup-modal-date").textContent = formatDate(match.createdAt);
+      document.getElementById("dup-overlay").classList.add("open");
+      document.getElementById("dup-modal-view").onclick = () => {
+        document.getElementById("dup-overlay").classList.remove("open");
+        openModal(match);
+        resolve(false);
+      };
+      document.getElementById("dup-modal-continue").onclick = () => {
+        document.getElementById("dup-overlay").classList.remove("open");
+        resolve(true);
+      };
+    });
   }
 
   const yarnOverlay = document.getElementById("yarn-overlay");
@@ -1530,6 +1535,8 @@
 
   convertBtn.addEventListener("click", async () => {
     if (!currentFile) return;
+    const proceed = await checkDuplicate();
+    if (!proceed) return;
     convertBtn.disabled = true; convertBtn.textContent = "Converting…";
     resultSection.style.display = "block";
     resultBox.className = "loading";
