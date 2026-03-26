@@ -1452,8 +1452,6 @@
 
     if (!isGuest) {
       const hash = await hashFile(file);
-      console.log("[dup] file hash:", hash);
-      console.log("[dup] cachedPatterns:", cachedPatterns.map(p => ({ id: p.id, imageHash: p.imageHash })));
       const match = cachedPatterns.find(p => p.imageHash === hash);
       if (match) {
         document.getElementById("dup-modal-date").textContent = formatDate(match.createdAt);
