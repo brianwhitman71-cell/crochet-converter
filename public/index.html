@@ -1450,8 +1450,10 @@
     resultBox.textContent = "";
     saveBtn.textContent = "💾 Save"; saveBtn.classList.remove("saved");
 
-    if (!isGuest && cachedPatterns.length > 0) {
+    if (!isGuest) {
       const hash = await hashFile(file);
+      console.log("[dup] file hash:", hash);
+      console.log("[dup] cachedPatterns:", cachedPatterns.map(p => ({ id: p.id, imageHash: p.imageHash })));
       const match = cachedPatterns.find(p => p.imageHash === hash);
       if (match) {
         document.getElementById("dup-modal-date").textContent = formatDate(match.createdAt);
@@ -1483,11 +1485,32 @@
 
   const yarnCountdown = document.getElementById("yarn-countdown");
   let countdownTimer = null;
-  function startCountdown(estimate = 40) {
+  let countdownStartTime = null;
+
+  // Keep a rolling average of the last 5 conversion times (seconds)
+  const HISTORY_KEY = "cc_conv_times";
+  function getConvHistory() {
+    try { return JSON.parse(sessionStorage.getItem(HISTORY_KEY) || "[]"); } catch { return []; }
+  }
+  function recordConvTime(seconds) {
+    const hist = getConvHistory();
+    hist.push(seconds);
+    if (hist.length > 5) hist.shift();
+    sessionStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+  }
+  function getEstimate() {
+    const hist = getConvHistory();
+    if (hist.length === 0) return 40;
+    const avg = hist.reduce((a, b) => a + b, 0) / hist.length;
+    return Math.ceil(avg * 1.1); // add 10% buffer
+  }
+
+  function startCountdown() {
     clearInterval(countdownTimer);
-    const startTime = Date.now();
+    countdownStartTime = Date.now();
+    const estimate = getEstimate();
     const tick = () => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const elapsed = Math.floor((Date.now() - countdownStartTime) / 1000);
       const remaining = estimate - elapsed;
       if (remaining > 0) {
         yarnCountdown.textContent = `~${remaining}s remaining`;
@@ -1501,6 +1524,10 @@
   function stopCountdown() {
     clearInterval(countdownTimer);
     yarnCountdown.textContent = "";
+    if (countdownStartTime) {
+      recordConvTime(Math.round((Date.now() - countdownStartTime) / 1000));
+      countdownStartTime = null;
+    }
   }
 
   convertBtn.addEventListener("click", async () => {
