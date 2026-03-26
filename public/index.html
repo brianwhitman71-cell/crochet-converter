@@ -965,8 +965,8 @@
     });
   })();
 
-  let token = localStorage.getItem("cc_token");
-  let userEmail = localStorage.getItem("cc_email");
+  let token = sessionStorage.getItem("cc_token");
+  let userEmail = sessionStorage.getItem("cc_email");
   let isGuest = false;
 
   function authHeaders() {
@@ -998,8 +998,8 @@
   }
 
   function logout() {
-    localStorage.removeItem("cc_token");
-    localStorage.removeItem("cc_email");
+    sessionStorage.removeItem("cc_token");
+    sessionStorage.removeItem("cc_email");
     token = null; userEmail = null; isGuest = false;
     showAuth();
   }
@@ -1012,8 +1012,8 @@
   });
 
   function clearTokenAndShowAuth() {
-    localStorage.removeItem("cc_token");
-    localStorage.removeItem("cc_email");
+    sessionStorage.removeItem("cc_token");
+    sessionStorage.removeItem("cc_email");
     token = null; userEmail = null;
     showAuth();
   }
@@ -1103,8 +1103,8 @@
       const data = await res.json();
       if (!res.ok) { errEl.textContent = data.error; errEl.classList.add("visible"); return; }
       token = data.token; userEmail = data.email;
-      localStorage.setItem("cc_token", token);
-      localStorage.setItem("cc_email", userEmail);
+      sessionStorage.setItem("cc_token", token);
+      sessionStorage.setItem("cc_email", userEmail);
       showApp();
     } catch {
       errEl.textContent = "Network error — is the server running?";
@@ -1220,8 +1220,8 @@
       if (!res.ok) { errEl.textContent = data.error; errEl.classList.add("visible"); btn.disabled = false; btn.textContent = "Set New Password"; return; }
       // Auto sign in
       token = data.token; userEmail = data.email;
-      localStorage.setItem("cc_token", token);
-      localStorage.setItem("cc_email", userEmail);
+      sessionStorage.setItem("cc_token", token);
+      sessionStorage.setItem("cc_email", userEmail);
       history.replaceState({}, "", "/");
       showApp();
     } catch {
