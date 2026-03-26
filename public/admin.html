@@ -8,17 +8,6 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #fff0f5; color: #3d1a2e; min-height: 100vh; }
 
-    /* Woobles strip */
-    .woobles-strip { overflow: hidden; width: 100%; padding: 0.5rem 0; background: linear-gradient(135deg, #fff0f5, #ffe8f3); border-bottom: 1.5px solid #f5c6e0; position: relative; }
-    .woobles-strip::before, .woobles-strip::after { content: ""; position: absolute; top: 0; bottom: 0; width: 50px; z-index: 2; pointer-events: none; }
-    .woobles-strip::before { left: 0; background: linear-gradient(to right, #fff0f5, transparent); }
-    .woobles-strip::after  { right: 0; background: linear-gradient(to left, #fff0f5, transparent); }
-    .woobles-track { display: flex; gap: 0.6rem; align-items: center; animation: woobleScroll 60s linear infinite; width: max-content; }
-    .woobles-track:hover { animation-play-state: paused; }
-    .woobles-track img { width: 70px; height: 70px; object-fit: contain; border-radius: 10px; background: #fff; border: 1.5px solid #f5c6e0; flex-shrink: 0; transition: transform 0.2s; }
-    .woobles-track img:hover { transform: scale(1.15); }
-    @keyframes woobleScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-
     /* Login */
     #login-screen {
       min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem;
@@ -144,7 +133,6 @@
     <button class="logout-btn" id="admin-logout">Sign Out</button>
   </header>
 
-  <div class="woobles-strip"><div class="woobles-track" id="woobles-track"></div></div>
 
   <div class="admin-container">
     <div class="stats">
@@ -220,42 +208,6 @@
 </div>
 
 <script>
-  // Woobles strip
-  (function() {
-    const imgs = [
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/pierre_straight_40851ef3-0c8a-4f01-a3eb-1a55ef7c802a.jpg?v=1762443067","Pierre the Penguin"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11TU-FW-PDP-Blue-WEB_1.jpg?v=1762450502","Turtle"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/SamTheSlothRetouched.jpg?v=1733407663","Sam the Sloth"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11PD-BaobaoThePanda-FW-YGP11-WEB.jpg?v=1740076192","Baobao the Panda"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11JF-Jellyfish-web_7f7423f3-290c-4eb8-8d99-6b5d4ff3616d.jpg?v=1762455926","Jerry the Jellyfish"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/miffy.jpg?v=1762453753","Miffy"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/33GL-GudetamaSunnySideUp-FW-YOT2-WEB.jpg?v=1747243266","Gudetama"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/220301-Woobles9255_2.jpg?v=1762446331","Dino"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/felix_straight_4e8e8742-f781-42e1-b67e-66697b7eb179.jpg?v=1762443228","Felix the Fox"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/11NW-CA-3-web.jpg?v=1762450130","Narwhal"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/kiki_straight_ab4ae105-4d87-4c9e-866a-ea411377d6fb.jpg?v=1762443079","Chick"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/99TLI-FW-PDP-Teal-WEB.jpg?v=1762454857","Lil Lion"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/products/jojo_straight_b813e5ff-df03-4c3f-a096-e61b54956d66.jpg?v=1762443069","Jojo the Bunny"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/93HDW-Hedwig-FW-RWHue-RET_2_24d61449-c8c8-4fff-bd7f-2b32684b689f.jpg?v=1699021625","Hedwig"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/93SCT-BeagleScoutAccesory-YHUE-1b-RET_1.jpg?v=1697115963","Snoopy"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/93ACE-FlyingAceAccesory-CT4-1b-RET_1.jpg?v=1697116443","Snoopy Flying Ace"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/33BL-Blossom-FW-RCT4-WEB1_c3005d3b-f091-47e5-b380-e291fcc24958.jpg?v=1713298770","Blossom"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/33BB-Bubbles-FW-CT4-WEB1_b5f1df35-4d71-44ea-a5ef-29deb4baf6d4.jpg?v=1713298729","Bubbles"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/33BC-Buttercup-FW-YGP11-WEB1_34bfe702-37a5-4608-9bc6-b8a0508030b4.jpg?v=1713298753","Buttercup"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11SS-SamTheSloth-Hook-YOT1-WEB.jpg?v=1733507612","Sloth"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/11JF-JerryTheJellyfish-Flatlay-CT4-RET.jpg?v=1742483923","Jellyfish"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/99TDO-FW-PDP-Yellow-WEB.jpg?v=1762454856","Wee Rex"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/99TFO-FW-PDP-Blue-WEB.jpg?v=1762454856","Wee Fox"],
-      ["https://cdn.shopify.com/s/files/1/0400/0904/0038/files/F11BN-FingerloopJojo-WoobleWithPouch-RVT3-WEB.jpg?v=1763561335","Fingerloop Jojo"],
-    ];
-    const track = document.getElementById("woobles-track");
-    [...imgs, ...imgs].forEach(([src, alt]) => {
-      const img = document.createElement("img");
-      img.src = src; img.alt = alt; img.title = alt; img.loading = "lazy";
-      track.appendChild(img);
-    });
-  })();
-
   let adminToken = sessionStorage.getItem("admin_token");
 
   function adminHeaders() {

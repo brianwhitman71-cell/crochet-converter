@@ -6,7 +6,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const serverless = require("serverless-http");
-const { getStore } = require("@netlify/blobs");
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
@@ -14,36 +13,45 @@ const client = new Anthropic.default({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const JWT_SECRET = process.env.JWT_SECRET || "crochet-secret-change-in-prod";
 
-// ── Blobs store factory (v1 functions need explicit siteID + token) ─
-function blobStore(name) {
-  return getStore({
-    name,
-    siteID: process.env.NETLIFY_SITE_ID || "d6891d39-b15f-42fb-827d-992377d4c333",
-    token: process.env.NETLIFY_API_TOKEN,
+// ── Upstash Redis helpers (REST API, works in any serverless env) ─
+async function redis(cmd, ...args) {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) throw new Error("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set");
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify([cmd, ...args]),
   });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.result;
 }
 
-// ── DB helpers using Netlify Blobs ───────────────────────────────
+// ── DB helpers ───────────────────────────────────────────────────
 async function readDB() {
-  const data = await blobStore("database").get("db.json", { type: "json" }).catch(() => null);
-  return data || { users: [], patterns: [] };
+  const raw = await redis("GET", "db").catch(() => null);
+  if (!raw) return { users: [], patterns: [] };
+  return typeof raw === "string" ? JSON.parse(raw) : raw;
 }
 
 async function writeDB(data) {
-  await blobStore("database").set("db.json", JSON.stringify(data));
+  await redis("SET", "db", JSON.stringify(data));
 }
 
 // ── Image helpers ────────────────────────────────────────────────
 async function saveImage(patternId, buffer) {
-  await blobStore("images").set(patternId, buffer, { contentType: "image/jpeg" });
+  await redis("SET", `img:${patternId}`, buffer.toString("base64"));
 }
 
 async function getImage(patternId) {
-  return blobStore("images").get(patternId, { type: "arrayBuffer" }).catch(() => null);
+  const raw = await redis("GET", `img:${patternId}`).catch(() => null);
+  if (!raw) return null;
+  return Buffer.from(raw, "base64").buffer;
 }
 
 async function deleteImage(patternId) {
-  await blobStore("images").delete(patternId).catch(() => null);
+  await redis("DEL", `img:${patternId}`).catch(() => null);
 }
 
 // ── Auth middleware ──────────────────────────────────────────────
@@ -363,7 +371,7 @@ app.delete("/api/admin/patterns/:id", requireAdmin, async (req, res) => {
 // Global error handler — always return JSON, never HTML
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  console.error("Function error:", err.message);
+  console.error("Function error:", err.message, err.stack);
   res.status(500).json({ error: "Internal server error" });
 });
 

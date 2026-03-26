@@ -2,12 +2,20 @@
   command = "npm install"
   publish = "public"
   functions = "netlify/functions"
+  edge_functions = "netlify/edge-functions"
 
 [build.environment]
   NODE_VERSION = "20"
 
 [functions]
   node_bundler = "nft"
+
+[functions."api"]
+  timeout = 26
+
+[[edge_functions]]
+  path = "/api/convert"
+  function = "convert"
 
 [[redirects]]
   from = "/api/*"
