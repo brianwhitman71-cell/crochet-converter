@@ -474,6 +474,66 @@
     footer { text-align: center; margin-top: 3rem; color: #d4a0bf; font-size: 0.8rem; }
     footer a { color: #e86fad; text-decoration: none; }
 
+    /* Bug report button */
+    .bug-report-btn {
+      position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 200;
+      padding: 0.55rem 1rem; background: #fff; border: 1.5px solid #f0a8cc;
+      color: #b5427a; border-radius: 99px; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; box-shadow: 0 2px 12px rgba(181,66,122,0.15); transition: all 0.15s;
+      display: flex; align-items: center; gap: 0.35rem;
+    }
+    .bug-report-btn:hover, .bug-report-btn:active { background: #ffe8f3; border-color: #e86fad; }
+
+    /* Bug report modal */
+    .bug-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(61,26,46,0.5);
+      backdrop-filter: blur(4px); z-index: 600; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    .bug-modal-overlay.open { display: flex; }
+    .bug-modal {
+      background: #fff; border-radius: 20px; max-width: 440px; width: 100%;
+      padding: 2rem 1.75rem; box-shadow: 0 20px 60px rgba(61,26,46,0.25);
+    }
+    .bug-modal h3 { font-size: 1.1rem; font-weight: 800; color: #b5427a; margin-bottom: 0.25rem; }
+    .bug-modal p { font-size: 0.82rem; color: #c485a8; margin-bottom: 1.25rem; }
+    .bug-modal label { display: block; font-size: 0.82rem; font-weight: 700; color: #b5427a; margin-bottom: 0.35rem; }
+    .bug-modal textarea {
+      width: 100%; padding: 0.7rem 0.9rem; border: 1.5px solid #f0a8cc; border-radius: 10px;
+      font-size: 0.9rem; color: #3d1a2e; resize: vertical; min-height: 90px; font-family: inherit;
+      outline: none; transition: border-color 0.15s;
+    }
+    .bug-modal textarea:focus { border-color: #e86fad; }
+    .bug-screenshot-zone {
+      margin-top: 0.85rem; border: 2px dashed #f0a8cc; border-radius: 12px; padding: 1.25rem;
+      text-align: center; cursor: pointer; transition: all 0.15s; background: #fff5f9; position: relative;
+    }
+    .bug-screenshot-zone:hover, .bug-screenshot-zone.drag-over { border-color: #e86fad; background: #ffe8f3; }
+    .bug-screenshot-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .bug-screenshot-zone p { font-size: 0.8rem; color: #c485a8; margin: 0; }
+    .bug-screenshot-preview { margin-top: 0.6rem; position: relative; display: inline-block; }
+    .bug-screenshot-preview img { max-height: 100px; border-radius: 8px; border: 1px solid #f5c6e0; display: block; }
+    .bug-screenshot-remove {
+      position: absolute; top: -6px; right: -6px; background: #b91c1c; color: #fff;
+      border: none; border-radius: 99px; width: 20px; height: 20px; font-size: 0.65rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 800;
+    }
+    .bug-modal-error { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 0.6rem 0.8rem; color: #b91c1c; font-size: 0.82rem; margin-top: 0.75rem; display: none; }
+    .bug-modal-error.visible { display: block; }
+    .bug-modal-success { background: #f0faf4; border: 1px solid #86efac; border-radius: 8px; padding: 0.6rem 0.8rem; color: #15803d; font-size: 0.82rem; margin-top: 0.75rem; display: none; text-align: center; }
+    .bug-modal-success.visible { display: block; }
+    .bug-modal-btns { display: flex; gap: 0.6rem; margin-top: 1.25rem; }
+    .bug-submit-btn {
+      flex: 1; padding: 0.75rem; background: linear-gradient(135deg, #e86fad, #c94f9a);
+      color: #fff; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
+    }
+    .bug-submit-btn:hover:not(:disabled) { opacity: 0.88; }
+    .bug-submit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .bug-cancel-btn {
+      padding: 0.75rem 1.25rem; background: #fff; border: 1.5px solid #f0a8cc;
+      color: #b5427a; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.15s;
+    }
+    .bug-cancel-btn:hover { border-color: #e86fad; background: #ffe8f3; }
+
     /* ── Mobile / small-screen ── */
     @media (max-width: 480px) {
       /* SVG animation: scale down on small phones */
@@ -857,7 +917,7 @@
   <div class="dup-modal">
     <div class="dup-modal-icon">🔁</div>
     <h3>Pattern already exists</h3>
-    <p id="dup-modal-msg">This image already has a saved pattern from <strong id="dup-modal-date"></strong>.</p>
+    <p id="dup-modal-msg">It looks like you already converted this image and have it saved. Would you like to view that saved pattern or would you like to convert again?</p>
     <div class="dup-modal-btns">
       <button class="dup-modal-view" id="dup-modal-view">View Saved Pattern</button>
       <button class="dup-modal-continue" id="dup-modal-continue">Convert Again Anyway</button>
@@ -1305,18 +1365,31 @@
     currentModalRec = rec;
     currentModalBlob = null;
     document.getElementById("modal-date").textContent = formatDate(rec.createdAt);
-    document.getElementById("modal-img").src = `/api/patterns/${rec.id}/image`;
-    document.getElementById("modal-img").setAttribute("data-auth", token);
-    loadAuthImage(document.getElementById("modal-img"), `/api/patterns/${rec.id}/image`);
+    const modalImg = document.getElementById("modal-img");
+    if (rec.thumbnail) {
+      modalImg.src = rec.thumbnail;
+      modalImg.style.display = "";
+    } else {
+      modalImg.src = "";
+      modalImg.style.display = "none";
+    }
+    loadAuthImage(modalImg, `/api/patterns/${rec.id}/image`);
     document.getElementById("modal-pattern").textContent = rec.pattern;
     document.getElementById("modal-overlay").classList.add("open");
   }
 
   async function loadAuthImage(imgEl, url) {
-    const res = await fetch(url, { headers: { "Authorization": `Bearer ${token}` } });
-    const blob = await res.blob();
-    currentModalBlob = blob;
-    imgEl.src = URL.createObjectURL(blob);
+    try {
+      const res = await fetch(url, { headers: { "Authorization": `Bearer ${token}` } });
+      if (!res.ok) return;
+      const { base64 } = await res.json();
+      if (!base64) return;
+      const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: "image/jpeg" });
+      currentModalBlob = blob;
+      imgEl.style.display = "";
+      imgEl.src = URL.createObjectURL(blob);
+    } catch {}
   }
 
   document.getElementById("modal-close").addEventListener("click", () => {
@@ -1458,7 +1531,6 @@
     const match = cachedPatterns.find(p => p.imageHash === hash);
     if (!match) return true;
     return new Promise(resolve => {
-      document.getElementById("dup-modal-date").textContent = formatDate(match.createdAt);
       document.getElementById("dup-overlay").classList.add("open");
       document.getElementById("dup-modal-view").onclick = () => {
         document.getElementById("dup-overlay").classList.remove("open");
@@ -1489,48 +1561,55 @@
   const yarnCountdown = document.getElementById("yarn-countdown");
   let countdownTimer = null;
   let countdownStartTime = null;
+  let charsReceived = 0;
 
-  // Keep a rolling average of the last 5 conversion times (seconds)
-  const HISTORY_KEY = "cc_conv_times";
+  // Store history in localStorage so estimates persist across sessions
+  const HISTORY_KEY = "cc_conv_history";
+  const DEFAULT_TOTAL_CHARS = 5000;
   function getConvHistory() {
-    try { return JSON.parse(sessionStorage.getItem(HISTORY_KEY) || "[]"); } catch { return []; }
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); } catch { return []; }
   }
-  function recordConvTime(seconds) {
+  function recordConvTime(totalChars) {
+    if (!totalChars) return;
     const hist = getConvHistory();
-    hist.push(seconds);
-    if (hist.length > 5) hist.shift();
-    sessionStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+    hist.push(totalChars);
+    if (hist.length > 10) hist.shift();
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
   }
-  function getEstimate() {
+  function getAvgTotalChars() {
     const hist = getConvHistory();
-    if (hist.length === 0) return 40;
-    const avg = hist.reduce((a, b) => a + b, 0) / hist.length;
-    return Math.ceil(avg * 1.1); // add 10% buffer
+    const avg = hist.length ? hist.reduce((a, b) => a + b, 0) / hist.length : DEFAULT_TOTAL_CHARS;
+    // Always stay ahead of what we've already received so the timer never hits 0 early
+    return Math.max(avg, charsReceived * 1.2);
+  }
+
+  function updateCountdownDisplay() {
+    if (!countdownStartTime) return;
+    const elapsed = (Date.now() - countdownStartTime) / 1000;
+    if (elapsed < 1.5 || charsReceived < 20) {
+      yarnCountdown.textContent = "Starting…";
+      return;
+    }
+    const rate = charsReceived / elapsed; // chars/sec
+    const remaining = Math.ceil((getAvgTotalChars() - charsReceived) / rate);
+    yarnCountdown.textContent = remaining > 3 ? `~${remaining}s remaining` : "Almost done…";
   }
 
   function startCountdown() {
     clearInterval(countdownTimer);
     countdownStartTime = Date.now();
-    const estimate = getEstimate();
-    const tick = () => {
-      const elapsed = Math.floor((Date.now() - countdownStartTime) / 1000);
-      const remaining = estimate - elapsed;
-      if (remaining > 0) {
-        yarnCountdown.textContent = `~${remaining}s remaining`;
-      } else {
-        yarnCountdown.textContent = `${elapsed}s elapsed…`;
-      }
-    };
-    tick();
-    countdownTimer = setInterval(tick, 1000);
+    charsReceived = 0;
+    updateCountdownDisplay();
+    countdownTimer = setInterval(updateCountdownDisplay, 1000);
   }
   function stopCountdown() {
     clearInterval(countdownTimer);
     yarnCountdown.textContent = "";
     if (countdownStartTime) {
-      recordConvTime(Math.round((Date.now() - countdownStartTime) / 1000));
+      recordConvTime(charsReceived);
       countdownStartTime = null;
     }
+    charsReceived = 0;
   }
 
   convertBtn.addEventListener("click", async () => {
@@ -1585,6 +1664,7 @@
                 started = true;
               }
               currentPattern += msg.text;
+              charsReceived += msg.text.length;
               textNode.nodeValue = currentPattern;
             } else if (msg.type === "done") {
               if (cursorEl) cursorEl.remove();
@@ -1715,6 +1795,130 @@
   function formatDate(ts) {
     return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
   }
+</script>
+
+<!-- Bug report button -->
+<button class="bug-report-btn" id="bug-report-btn">🐛 Report a Bug</button>
+
+<!-- Bug report modal -->
+<div class="bug-modal-overlay" id="bug-modal-overlay">
+  <div class="bug-modal">
+    <h3>🐛 Report a Bug</h3>
+    <p>Tell us what went wrong and we'll take a look!</p>
+    <label for="bug-description">What happened?</label>
+    <textarea id="bug-description" placeholder="Describe the bug or unexpected behavior…" rows="4"></textarea>
+    <div class="bug-screenshot-zone" id="bug-screenshot-zone">
+      <input type="file" id="bug-screenshot-input" accept="image/*" />
+      <p id="bug-screenshot-label">📎 Attach a screenshot (optional)</p>
+      <div class="bug-screenshot-preview" id="bug-screenshot-preview" style="display:none">
+        <img id="bug-screenshot-thumb" src="" alt="Screenshot" />
+        <button class="bug-screenshot-remove" id="bug-screenshot-remove" type="button">✕</button>
+      </div>
+    </div>
+    <div class="bug-modal-error" id="bug-modal-error"></div>
+    <div class="bug-modal-success" id="bug-modal-success">Thanks! Your report was submitted. 🙏</div>
+    <div class="bug-modal-btns">
+      <button class="bug-cancel-btn" id="bug-cancel-btn">Cancel</button>
+      <button class="bug-submit-btn" id="bug-submit-btn">Submit Report</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    let bugScreenshotFile = null;
+
+    const overlay = document.getElementById("bug-modal-overlay");
+    const openBtn = document.getElementById("bug-report-btn");
+    const cancelBtn = document.getElementById("bug-cancel-btn");
+    const submitBtn = document.getElementById("bug-submit-btn");
+    const textarea = document.getElementById("bug-description");
+    const errorEl = document.getElementById("bug-modal-error");
+    const successEl = document.getElementById("bug-modal-success");
+    const screenshotInput = document.getElementById("bug-screenshot-input");
+    const screenshotZone = document.getElementById("bug-screenshot-zone");
+    const screenshotPreview = document.getElementById("bug-screenshot-preview");
+    const screenshotThumb = document.getElementById("bug-screenshot-thumb");
+    const screenshotRemove = document.getElementById("bug-screenshot-remove");
+    const screenshotLabel = document.getElementById("bug-screenshot-label");
+
+    function resetModal() {
+      textarea.value = "";
+      errorEl.classList.remove("visible");
+      successEl.classList.remove("visible");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit Report";
+      bugScreenshotFile = null;
+      screenshotPreview.style.display = "none";
+      screenshotThumb.src = "";
+      screenshotLabel.style.display = "";
+      screenshotInput.value = "";
+    }
+
+    openBtn.addEventListener("click", () => { resetModal(); overlay.classList.add("open"); });
+    cancelBtn.addEventListener("click", () => overlay.classList.remove("open"));
+    overlay.addEventListener("click", e => { if (e.target === overlay) overlay.classList.remove("open"); });
+
+    screenshotInput.addEventListener("change", () => {
+      const file = screenshotInput.files[0];
+      if (!file) return;
+      bugScreenshotFile = file;
+      const url = URL.createObjectURL(file);
+      screenshotThumb.src = url;
+      screenshotPreview.style.display = "inline-block";
+      screenshotLabel.style.display = "none";
+    });
+
+    screenshotZone.addEventListener("dragover", e => { e.preventDefault(); screenshotZone.classList.add("drag-over"); });
+    screenshotZone.addEventListener("dragleave", () => screenshotZone.classList.remove("drag-over"));
+    screenshotZone.addEventListener("drop", e => {
+      e.preventDefault(); screenshotZone.classList.remove("drag-over");
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith("image/")) {
+        bugScreenshotFile = file;
+        screenshotThumb.src = URL.createObjectURL(file);
+        screenshotPreview.style.display = "inline-block";
+        screenshotLabel.style.display = "none";
+      }
+    });
+
+    screenshotRemove.addEventListener("click", e => {
+      e.stopPropagation();
+      bugScreenshotFile = null;
+      screenshotThumb.src = "";
+      screenshotPreview.style.display = "none";
+      screenshotLabel.style.display = "";
+      screenshotInput.value = "";
+    });
+
+    submitBtn.addEventListener("click", async () => {
+      errorEl.classList.remove("visible");
+      const desc = textarea.value.trim();
+      if (!desc) { errorEl.textContent = "Please describe the bug."; errorEl.classList.add("visible"); return; }
+
+      submitBtn.disabled = true; submitBtn.textContent = "Submitting…";
+
+      const formData = new FormData();
+      formData.append("description", desc);
+      formData.append("page", "main");
+      if (bugScreenshotFile) formData.append("screenshot", bugScreenshotFile);
+
+      const headers = {};
+      const token = sessionStorage.getItem("cc_token");
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      try {
+        const res = await fetch("/api/bugs", { method: "POST", headers, body: formData });
+        if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Failed"); }
+        successEl.classList.add("visible");
+        submitBtn.style.display = "none";
+        cancelBtn.textContent = "Close";
+      } catch (err) {
+        errorEl.textContent = err.message; errorEl.classList.add("visible");
+        submitBtn.disabled = false; submitBtn.textContent = "Submit Report";
+      }
+    });
+  })();
 </script>
 </body>
 </html>

@@ -320,10 +320,7 @@ app.post("/api/admin/login", (req, res) => {
 
 app.get("/api/admin/stats", requireAdmin, (req, res) => {
   const db = readDB();
-  res.json({
-    users: db.users.length,
-    patterns: db.patterns.length,
-  });
+  res.json({ users: db.users.length, patterns: db.patterns.length, bugs: (db.bugs || []).length });
 });
 
 app.get("/api/admin/users", requireAdmin, (req, res) => {
@@ -377,6 +374,75 @@ app.get("/api/admin/patterns/:id/image", requireAdmin, (req, res) => {
   const imgPath = path.join(IMAGES_DIR, `${req.params.id}.jpg`);
   if (!fs.existsSync(imgPath)) return res.status(404).json({ error: "Image not found" });
   res.sendFile(imgPath);
+});
+
+// ── Bug report routes ────────────────────────────────────────────
+const BUGS_IMAGES_DIR = path.join(__dirname, "data", "bug-images");
+fs.mkdirSync(BUGS_IMAGES_DIR, { recursive: true });
+
+app.post("/api/bugs", optionalAuth, upload.single("screenshot"), (req, res) => {
+  const { description, page } = req.body;
+  if (!description || !description.trim()) return res.status(400).json({ error: "Description required" });
+
+  const id = uuidv4();
+  const db = readDB();
+  if (!db.bugs) db.bugs = [];
+
+  if (req.file) {
+    const ext = req.file.mimetype === "image/png" ? "png" : "jpg";
+    fs.writeFileSync(path.join(BUGS_IMAGES_DIR, `${id}.${ext}`), req.file.buffer);
+  }
+
+  db.bugs.push({
+    id,
+    description: description.trim(),
+    page: page || "unknown",
+    userEmail: req.user ? req.user.email : "Guest",
+    hasScreenshot: !!req.file,
+    screenshotType: req.file ? req.file.mimetype : null,
+    createdAt: Date.now(),
+    status: "new",
+  });
+  writeDB(db);
+  res.json({ ok: true });
+});
+
+app.get("/api/admin/bugs", requireAdmin, (req, res) => {
+  const db = readDB();
+  res.json((db.bugs || []).sort((a, b) => b.createdAt - a.createdAt));
+});
+
+app.get("/api/admin/bugs/:id/screenshot", requireAdmin, (req, res) => {
+  const pngPath = path.join(BUGS_IMAGES_DIR, `${req.params.id}.png`);
+  const jpgPath = path.join(BUGS_IMAGES_DIR, `${req.params.id}.jpg`);
+  const imgPath = fs.existsSync(pngPath) ? pngPath : fs.existsSync(jpgPath) ? jpgPath : null;
+  if (!imgPath) return res.status(404).json({ error: "No screenshot" });
+  const base64 = fs.readFileSync(imgPath).toString("base64");
+  res.json({ base64 });
+});
+
+app.patch("/api/admin/bugs/:id", requireAdmin, (req, res) => {
+  const { status } = req.body;
+  const db = readDB();
+  const bug = (db.bugs || []).find(b => b.id === req.params.id);
+  if (!bug) return res.status(404).json({ error: "Not found" });
+  if (status) bug.status = status;
+  writeDB(db);
+  res.json({ ok: true });
+});
+
+app.delete("/api/admin/bugs/:id", requireAdmin, (req, res) => {
+  const db = readDB();
+  if (!db.bugs) return res.status(404).json({ error: "Not found" });
+  const idx = db.bugs.findIndex(b => b.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: "Not found" });
+  db.bugs.splice(idx, 1);
+  writeDB(db);
+  ["png", "jpg"].forEach(ext => {
+    const p = path.join(BUGS_IMAGES_DIR, `${req.params.id}.${ext}`);
+    if (fs.existsSync(p)) fs.unlinkSync(p);
+  });
+  res.json({ ok: true });
 });
 
 const PORT = process.env.PORT || 3001;

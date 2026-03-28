@@ -47,7 +47,7 @@ async function saveImage(patternId, buffer) {
 async function getImage(patternId) {
   const raw = await redis("GET", `img:${patternId}`).catch(() => null);
   if (!raw) return null;
-  return Buffer.from(raw, "base64").buffer;
+  return Buffer.from(raw, "base64");
 }
 
 async function deleteImage(patternId) {
@@ -218,8 +218,7 @@ app.get("/api/patterns/:id/image", requireAuth, async (req, res) => {
   const buffer = await getImage(req.params.id);
   if (!buffer) return res.status(404).json({ error: "Image not found" });
 
-  res.setHeader("Content-Type", "image/jpeg");
-  res.send(Buffer.from(buffer));
+  res.json({ base64: buffer.toString("base64") });
 });
 
 app.delete("/api/patterns/:id", requireAuth, async (req, res) => {
@@ -323,7 +322,7 @@ app.post("/api/admin/login", (req, res) => {
 
 app.get("/api/admin/stats", requireAdmin, async (req, res) => {
   const db = await readDB();
-  res.json({ users: db.users.length, patterns: db.patterns.length });
+  res.json({ users: db.users.length, patterns: db.patterns.length, bugs: (db.bugs || []).length });
 });
 
 app.get("/api/admin/users", requireAdmin, async (req, res) => {
@@ -365,6 +364,65 @@ app.delete("/api/admin/patterns/:id", requireAdmin, async (req, res) => {
   db.patterns.splice(idx, 1);
   await writeDB(db);
   await deleteImage(req.params.id);
+  res.json({ ok: true });
+});
+
+// ── Bug report routes ────────────────────────────────────────────
+app.post("/api/bugs", optionalAuth, upload.single("screenshot"), async (req, res) => {
+  const { description, page } = req.body;
+  if (!description || !description.trim()) return res.status(400).json({ error: "Description required" });
+
+  const id = crypto.randomUUID();
+  const db = await readDB();
+  if (!db.bugs) db.bugs = [];
+
+  if (req.file) {
+    await redis("SET", `bug-img:${id}`, req.file.buffer.toString("base64"));
+  }
+
+  db.bugs.push({
+    id,
+    description: description.trim(),
+    page: page || "unknown",
+    userEmail: req.user ? req.user.email : "Guest",
+    hasScreenshot: !!req.file,
+    screenshotType: req.file ? req.file.mimetype : null,
+    createdAt: Date.now(),
+    status: "new",
+  });
+  await writeDB(db);
+  res.json({ ok: true });
+});
+
+app.get("/api/admin/bugs", requireAdmin, async (req, res) => {
+  const db = await readDB();
+  res.json((db.bugs || []).sort((a, b) => b.createdAt - a.createdAt));
+});
+
+app.get("/api/admin/bugs/:id/screenshot", requireAdmin, async (req, res) => {
+  const raw = await redis("GET", `bug-img:${req.params.id}`).catch(() => null);
+  if (!raw) return res.status(404).json({ error: "No screenshot" });
+  res.json({ base64: raw });
+});
+
+app.patch("/api/admin/bugs/:id", requireAdmin, async (req, res) => {
+  const { status } = req.body;
+  const db = await readDB();
+  const bug = (db.bugs || []).find(b => b.id === req.params.id);
+  if (!bug) return res.status(404).json({ error: "Not found" });
+  if (status) bug.status = status;
+  await writeDB(db);
+  res.json({ ok: true });
+});
+
+app.delete("/api/admin/bugs/:id", requireAdmin, async (req, res) => {
+  const db = await readDB();
+  if (!db.bugs) return res.status(404).json({ error: "Not found" });
+  const idx = db.bugs.findIndex(b => b.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: "Not found" });
+  db.bugs.splice(idx, 1);
+  await writeDB(db);
+  await redis("DEL", `bug-img:${req.params.id}`).catch(() => null);
   res.json({ ok: true });
 });
 

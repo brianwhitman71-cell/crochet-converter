@@ -95,6 +95,12 @@
     .empty-row td { text-align: center; color: #c485a8; font-style: italic; padding: 3rem; }
     .loading-row td { text-align: center; color: #c485a8; padding: 2rem; }
 
+    /* Status badge */
+    .status-new { display: inline-block; background: #fef2f2; color: #b91c1c; border-radius: 99px; font-size: 0.72rem; padding: 2px 9px; font-weight: 800; }
+    .status-resolved { display: inline-block; background: #f0faf4; color: #15803d; border-radius: 99px; font-size: 0.72rem; padding: 2px 9px; font-weight: 800; }
+    .page-badge { display: inline-block; background: #f0f0ff; color: #5050b0; border-radius: 99px; font-size: 0.72rem; padding: 2px 9px; font-weight: 700; }
+    .bug-desc-cell { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem; color: #3d1a2e; }
+
     /* Pattern modal */
     .modal-overlay {
       display: none; position: fixed; inset: 0; background: rgba(61,26,46,0.5);
@@ -144,11 +150,16 @@
         <div class="stat-num" id="stat-patterns">—</div>
         <div class="stat-label">Saved Patterns</div>
       </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-bugs">—</div>
+        <div class="stat-label">Bug Reports</div>
+      </div>
     </div>
 
     <div class="tabs">
       <button class="tab-btn active" id="tab-users-btn" onclick="showTab('users')">Users</button>
       <button class="tab-btn" id="tab-patterns-btn" onclick="showTab('patterns')">All Patterns</button>
+      <button class="tab-btn" id="tab-bugs-btn" onclick="showTab('bugs')">Reported Bugs</button>
     </div>
 
     <!-- Users table -->
@@ -187,6 +198,47 @@
             <tr class="loading-row"><td colspan="5">Loading…</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Bugs table -->
+    <div id="tab-bugs" style="display:none">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>User</th>
+              <th>Page</th>
+              <th>Description</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="bugs-tbody">
+            <tr class="loading-row"><td colspan="6">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bug detail modal -->
+<div class="modal-overlay" id="bug-modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="bug-modal-title"></h3>
+      <button class="modal-close" id="bug-modal-close">✕</button>
+    </div>
+    <img id="bug-modal-img" src="" alt="Screenshot" style="display:none;width:100%;max-height:320px;object-fit:contain;background:#fff5f9;" />
+    <div style="padding:1.5rem;">
+      <div style="font-size:0.75rem;font-weight:700;color:#b5427a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">Description</div>
+      <div id="bug-modal-desc" style="font-size:0.9rem;color:#3d1a2e;line-height:1.65;white-space:pre-wrap;"></div>
+      <div style="margin-top:1.25rem;display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;">
+        <span id="bug-modal-status-badge"></span>
+        <button id="bug-modal-resolve-btn" class="modal-copy-btn" style="font-size:0.82rem;">Mark Resolved</button>
+        <button id="bug-modal-reopen-btn" class="modal-copy-btn" style="font-size:0.82rem;display:none;">Reopen</button>
       </div>
     </div>
   </div>
@@ -276,16 +328,18 @@
       const data = await res.json();
       document.getElementById("stat-users").textContent = data.users;
       document.getElementById("stat-patterns").textContent = data.patterns;
+      document.getElementById("stat-bugs").textContent = data.bugs !== undefined ? data.bugs : "—";
     } catch {}
   }
 
   // Tabs
   function showTab(tab) {
-    document.getElementById("tab-users").style.display = tab === "users" ? "block" : "none";
-    document.getElementById("tab-patterns").style.display = tab === "patterns" ? "block" : "none";
-    document.getElementById("tab-users-btn").classList.toggle("active", tab === "users");
-    document.getElementById("tab-patterns-btn").classList.toggle("active", tab === "patterns");
+    ["users", "patterns", "bugs"].forEach(t => {
+      document.getElementById(`tab-${t}`).style.display = t === tab ? "block" : "none";
+      document.getElementById(`tab-${t}-btn`).classList.toggle("active", t === tab);
+    });
     if (tab === "patterns") loadPatterns();
+    if (tab === "bugs") loadBugs();
   }
 
   // Users
@@ -372,6 +426,231 @@
       btn.textContent = "Copied!"; setTimeout(() => { btn.textContent = "Copy Pattern"; }, 2000);
     });
   });
+
+  // ── Bugs ─────────────────────────────────────────────────────────
+  let bugsCache = [];
+
+  async function loadBugs() {
+    const tbody = document.getElementById("bugs-tbody");
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="6">Loading…</td></tr>';
+    try {
+      const res = await fetch("/api/admin/bugs", { headers: adminHeaders() });
+      if (res.status === 401) { sessionStorage.removeItem("admin_token"); showLogin(); return; }
+      bugsCache = await res.json();
+      if (!bugsCache.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No bug reports yet.</td></tr>'; return; }
+      tbody.innerHTML = "";
+      bugsCache.forEach(b => {
+        const tr = document.createElement("tr");
+        const statusBadge = b.status === "resolved"
+          ? `<span class="status-resolved">Resolved</span>`
+          : `<span class="status-new">New</span>`;
+        tr.innerHTML = `
+          <td class="date-cell">${formatDate(b.createdAt)}</td>
+          <td class="email-cell">${escapeHtml(b.userEmail)}</td>
+          <td><span class="page-badge">${escapeHtml(b.page)}</span></td>
+          <td class="bug-desc-cell">${escapeHtml(b.description)}</td>
+          <td>${statusBadge}</td>
+          <td style="display:flex;gap:0.4rem;align-items:center">
+            <button class="modal-copy-btn view-bug-btn" data-id="${b.id}" style="white-space:nowrap;font-size:0.8rem">View</button>
+            <button class="del-btn del-bug-btn" data-id="${b.id}">Delete</button>
+          </td>`;
+        tr.querySelector(".view-bug-btn").addEventListener("click", () => openBugModal(b.id));
+        tr.querySelector(".del-bug-btn").addEventListener("click", async () => {
+          if (!confirm("Delete this bug report?")) return;
+          await fetch(`/api/admin/bugs/${b.id}`, { method: "DELETE", headers: adminHeaders() });
+          loadBugs(); loadStats();
+        });
+        tbody.appendChild(tr);
+      });
+    } catch { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Failed to load bug reports.</td></tr>'; }
+  }
+
+  let currentBugId = null;
+
+  async function openBugModal(id) {
+    const bug = bugsCache.find(b => b.id === id);
+    if (!bug) return;
+    currentBugId = id;
+
+    document.getElementById("bug-modal-title").textContent = `Bug · ${formatDate(bug.createdAt)} · ${bug.userEmail}`;
+    document.getElementById("bug-modal-desc").textContent = bug.description;
+
+    const statusBadge = document.getElementById("bug-modal-status-badge");
+    const resolveBtn = document.getElementById("bug-modal-resolve-btn");
+    const reopenBtn = document.getElementById("bug-modal-reopen-btn");
+    statusBadge.innerHTML = bug.status === "resolved"
+      ? `<span class="status-resolved">Resolved</span>`
+      : `<span class="status-new">New</span>`;
+    resolveBtn.style.display = bug.status === "resolved" ? "none" : "";
+    reopenBtn.style.display = bug.status === "resolved" ? "" : "none";
+
+    const img = document.getElementById("bug-modal-img");
+    img.style.display = "none";
+    img.src = "";
+    if (bug.hasScreenshot) {
+      try {
+        const r = await fetch(`/api/admin/bugs/${id}/screenshot`, { headers: adminHeaders() });
+        if (r.ok) {
+          const data = await r.json();
+          img.src = `data:${bug.screenshotType || "image/jpeg"};base64,${data.base64}`;
+          img.style.display = "block";
+        }
+      } catch {}
+    }
+
+    document.getElementById("bug-modal-overlay").classList.add("open");
+  }
+
+  document.getElementById("bug-modal-close").addEventListener("click", () => {
+    document.getElementById("bug-modal-overlay").classList.remove("open");
+  });
+  document.getElementById("bug-modal-overlay").addEventListener("click", e => {
+    if (e.target === document.getElementById("bug-modal-overlay"))
+      document.getElementById("bug-modal-overlay").classList.remove("open");
+  });
+
+  async function setBugStatus(status) {
+    if (!currentBugId) return;
+    await fetch(`/api/admin/bugs/${currentBugId}`, {
+      method: "PATCH", headers: adminHeaders(), body: JSON.stringify({ status }),
+    });
+    const bug = bugsCache.find(b => b.id === currentBugId);
+    if (bug) bug.status = status;
+    const statusBadge = document.getElementById("bug-modal-status-badge");
+    statusBadge.innerHTML = status === "resolved"
+      ? `<span class="status-resolved">Resolved</span>`
+      : `<span class="status-new">New</span>`;
+    document.getElementById("bug-modal-resolve-btn").style.display = status === "resolved" ? "none" : "";
+    document.getElementById("bug-modal-reopen-btn").style.display = status === "resolved" ? "" : "none";
+    loadBugs();
+  }
+
+  document.getElementById("bug-modal-resolve-btn").addEventListener("click", () => setBugStatus("resolved"));
+  document.getElementById("bug-modal-reopen-btn").addEventListener("click", () => setBugStatus("new"));
+
+  // ── Bug report button (for admins to report bugs too) ─────────────
+  (function () {
+    const style = document.createElement("style");
+    style.textContent = `
+      .bug-report-btn { position:fixed; bottom:1.25rem; right:1.25rem; z-index:50; padding:0.55rem 1rem; background:#fff; border:1.5px solid #f0a8cc; color:#b5427a; border-radius:99px; font-size:0.78rem; font-weight:700; cursor:pointer; box-shadow:0 2px 12px rgba(181,66,122,0.15); transition:all 0.15s; display:flex; align-items:center; gap:0.35rem; }
+      .bug-report-btn:hover { background:#ffe8f3; border-color:#e86fad; }
+      .bug-admin-modal-overlay { display:none; position:fixed; inset:0; background:rgba(61,26,46,0.5); backdrop-filter:blur(4px); z-index:600; align-items:center; justify-content:center; padding:1.5rem; }
+      .bug-admin-modal-overlay.open { display:flex; }
+      .bug-admin-modal { background:#fff; border-radius:20px; max-width:440px; width:100%; padding:2rem 1.75rem; box-shadow:0 20px 60px rgba(61,26,46,0.25); }
+      .bug-admin-modal h3 { font-size:1.1rem; font-weight:800; color:#b5427a; margin-bottom:0.25rem; }
+      .bug-admin-modal p { font-size:0.82rem; color:#c485a8; margin-bottom:1.25rem; }
+      .bug-admin-modal label { display:block; font-size:0.82rem; font-weight:700; color:#b5427a; margin-bottom:0.35rem; }
+      .bug-admin-modal textarea { width:100%; padding:0.7rem 0.9rem; border:1.5px solid #f0a8cc; border-radius:10px; font-size:0.9rem; color:#3d1a2e; resize:vertical; min-height:90px; font-family:inherit; outline:none; transition:border-color 0.15s; }
+      .bug-admin-modal textarea:focus { border-color:#e86fad; }
+      .bug-admin-ss-zone { margin-top:0.85rem; border:2px dashed #f0a8cc; border-radius:12px; padding:1.25rem; text-align:center; cursor:pointer; transition:all 0.15s; background:#fff5f9; position:relative; }
+      .bug-admin-ss-zone:hover { border-color:#e86fad; background:#ffe8f3; }
+      .bug-admin-ss-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+      .bug-admin-ss-zone p { font-size:0.8rem; color:#c485a8; margin:0; }
+      .bug-admin-ss-preview { margin-top:0.6rem; position:relative; display:inline-block; }
+      .bug-admin-ss-preview img { max-height:90px; border-radius:8px; border:1px solid #f5c6e0; display:block; }
+      .bug-admin-ss-remove { position:absolute; top:-6px; right:-6px; background:#b91c1c; color:#fff; border:none; border-radius:99px; width:20px; height:20px; font-size:0.65rem; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:800; }
+      .bug-admin-err { background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:0.6rem 0.8rem; color:#b91c1c; font-size:0.82rem; margin-top:0.75rem; display:none; }
+      .bug-admin-err.visible { display:block; }
+      .bug-admin-ok { background:#f0faf4; border:1px solid #86efac; border-radius:8px; padding:0.6rem 0.8rem; color:#15803d; font-size:0.82rem; margin-top:0.75rem; display:none; text-align:center; }
+      .bug-admin-ok.visible { display:block; }
+      .bug-admin-btns { display:flex; gap:0.6rem; margin-top:1.25rem; }
+      .bug-admin-submit { flex:1; padding:0.75rem; background:linear-gradient(135deg,#e86fad,#c94f9a); color:#fff; border:none; border-radius:12px; font-size:0.95rem; font-weight:700; cursor:pointer; transition:opacity 0.15s; }
+      .bug-admin-submit:hover:not(:disabled) { opacity:0.88; }
+      .bug-admin-submit:disabled { opacity:0.55; cursor:not-allowed; }
+      .bug-admin-cancel { padding:0.75rem 1.25rem; background:#fff; border:1.5px solid #f0a8cc; color:#b5427a; border-radius:12px; font-size:0.95rem; font-weight:700; cursor:pointer; }
+      .bug-admin-cancel:hover { border-color:#e86fad; background:#ffe8f3; }
+    `;
+    document.head.appendChild(style);
+
+    const btnEl = document.createElement("button");
+    btnEl.className = "bug-report-btn"; btnEl.id = "admin-bug-report-btn";
+    btnEl.innerHTML = "🐛 Report a Bug";
+    document.body.appendChild(btnEl);
+
+    const overlayEl = document.createElement("div");
+    overlayEl.className = "bug-admin-modal-overlay"; overlayEl.id = "bug-admin-modal-overlay";
+    overlayEl.innerHTML = `
+      <div class="bug-admin-modal">
+        <h3>🐛 Report a Bug</h3>
+        <p>Tell us what went wrong!</p>
+        <label>What happened?</label>
+        <textarea id="bug-admin-desc" placeholder="Describe the bug…" rows="4"></textarea>
+        <div class="bug-admin-ss-zone" id="bug-admin-ss-zone">
+          <input type="file" id="bug-admin-ss-input" accept="image/*" />
+          <p id="bug-admin-ss-label">📎 Attach a screenshot (optional)</p>
+          <div class="bug-admin-ss-preview" id="bug-admin-ss-preview" style="display:none">
+            <img id="bug-admin-ss-thumb" src="" alt="Screenshot" />
+            <button class="bug-admin-ss-remove" id="bug-admin-ss-remove" type="button">✕</button>
+          </div>
+        </div>
+        <div class="bug-admin-err" id="bug-admin-err"></div>
+        <div class="bug-admin-ok" id="bug-admin-ok">Report submitted! 🙏</div>
+        <div class="bug-admin-btns">
+          <button class="bug-admin-cancel" id="bug-admin-cancel">Cancel</button>
+          <button class="bug-admin-submit" id="bug-admin-submit">Submit Report</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlayEl);
+
+    let ssFile = null;
+
+    function resetAdminBugModal() {
+      document.getElementById("bug-admin-desc").value = "";
+      document.getElementById("bug-admin-err").classList.remove("visible");
+      document.getElementById("bug-admin-ok").classList.remove("visible");
+      const submitEl = document.getElementById("bug-admin-submit");
+      submitEl.disabled = false; submitEl.textContent = "Submit Report"; submitEl.style.display = "";
+      document.getElementById("bug-admin-cancel").textContent = "Cancel";
+      ssFile = null;
+      document.getElementById("bug-admin-ss-preview").style.display = "none";
+      document.getElementById("bug-admin-ss-thumb").src = "";
+      document.getElementById("bug-admin-ss-label").style.display = "";
+      document.getElementById("bug-admin-ss-input").value = "";
+    }
+
+    btnEl.addEventListener("click", () => { resetAdminBugModal(); overlayEl.classList.add("open"); });
+    document.getElementById("bug-admin-cancel").addEventListener("click", () => overlayEl.classList.remove("open"));
+    overlayEl.addEventListener("click", e => { if (e.target === overlayEl) overlayEl.classList.remove("open"); });
+
+    document.getElementById("bug-admin-ss-input").addEventListener("change", function () {
+      const file = this.files[0]; if (!file) return;
+      ssFile = file;
+      document.getElementById("bug-admin-ss-thumb").src = URL.createObjectURL(file);
+      document.getElementById("bug-admin-ss-preview").style.display = "inline-block";
+      document.getElementById("bug-admin-ss-label").style.display = "none";
+    });
+
+    document.getElementById("bug-admin-ss-remove").addEventListener("click", e => {
+      e.stopPropagation(); ssFile = null;
+      document.getElementById("bug-admin-ss-thumb").src = "";
+      document.getElementById("bug-admin-ss-preview").style.display = "none";
+      document.getElementById("bug-admin-ss-label").style.display = "";
+      document.getElementById("bug-admin-ss-input").value = "";
+    });
+
+    document.getElementById("bug-admin-submit").addEventListener("click", async () => {
+      const errEl = document.getElementById("bug-admin-err");
+      errEl.classList.remove("visible");
+      const desc = document.getElementById("bug-admin-desc").value.trim();
+      if (!desc) { errEl.textContent = "Please describe the bug."; errEl.classList.add("visible"); return; }
+      const submitEl = document.getElementById("bug-admin-submit");
+      submitEl.disabled = true; submitEl.textContent = "Submitting…";
+      const fd = new FormData();
+      fd.append("description", desc); fd.append("page", "admin");
+      if (ssFile) fd.append("screenshot", ssFile);
+      try {
+        const r = await fetch("/api/bugs", { method: "POST", headers: { "Authorization": `Bearer ${adminToken}` }, body: fd });
+        if (!r.ok) { const d = await r.json(); throw new Error(d.error || "Failed"); }
+        document.getElementById("bug-admin-ok").classList.add("visible");
+        submitEl.style.display = "none";
+        document.getElementById("bug-admin-cancel").textContent = "Close";
+        loadStats();
+      } catch (err) {
+        errEl.textContent = err.message; errEl.classList.add("visible");
+        submitEl.disabled = false; submitEl.textContent = "Submit Report";
+      }
+    });
+  })();
 </script>
 </body>
 </html>
